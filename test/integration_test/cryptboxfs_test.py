@@ -35,6 +35,15 @@ class TestCryptbox(object):
         shutil.rmtree(cls.mount_point)
         shutil.rmtree(cls.mirror_dir)
 
+    def setUp(self):
+        """
+        runs before each test
+        makes sure the file system is still running!
+        """
+        res = self.fs_process.poll()
+        if res is not None:
+            raise AssertionError("Filesystem shutdown! Exit code %d" % res)
+
     def tearDown(self):
         """
         runs after each test

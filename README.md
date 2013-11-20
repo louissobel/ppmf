@@ -20,3 +20,12 @@ pip install -r requirements.txt
 ```
 
 Then?
+
+
+Tests
+------
+run tests using `nosetests`
+
+Right now, super basic sanity checks. Please! Add more test cases.
+Including unit tests as you write.
+It will really help us evolve and iterate on the project.

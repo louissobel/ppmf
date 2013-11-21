@@ -7,6 +7,7 @@ import sys
 
 import fuse
 
+ENCRYPTION_PREFIX = '__enc__'
 
 class CryptboxFS(fuse.Operations):
     """

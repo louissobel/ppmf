@@ -8,6 +8,7 @@ import os
 import os.path
 
 import cryptboxfs
+import cryptbox_files
 
 TEST_PASSWORD = 'password123'
 
@@ -77,3 +78,21 @@ class TestCryptbox(object):
             f.write(message)
         with open(path, 'r') as f:
             assert f.read() == message
+
+    def test_write_read_encrypted(self):
+        """
+        make sure that reading from the
+        encrypted prefix gives an encrypted result
+        """
+        message = "Well hello."
+        filename = 'test.txt'
+
+        path = os.path.join(self.mount_point, filename)
+        with open(path, 'w') as f:
+            f.write(message)
+
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+        with open(path, 'r') as f:
+            contents = f.read()
+            expected = cryptbox_files.UnencryptedFile(message).encrypt(TEST_PASSWORD).contents()
+            assert expected == contents

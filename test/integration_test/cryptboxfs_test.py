@@ -6,6 +6,8 @@ import subprocess
 import shutil
 import os
 import os.path
+import time
+import signal
 
 import cryptboxfs
 import cryptbox_files
@@ -30,13 +32,16 @@ class TestCryptbox(object):
         os.environ['TEST_CRYPTBOXFS_PASSWORD'] = TEST_PASSWORD
         cls.fs_process = subprocess.Popen(['python', cryptbox_path, cls.mirror_dir, cls.mount_point])
 
+        # janky give it time to mount
+        time.sleep(3)
+
     @classmethod
     def teardown_class(cls):
         """
          - kill the process
          - remove directories
         """
-        cls.fs_process.kill()
+        cls.fs_process.send_signal(signal.SIGINT)
         cls.fs_process.wait()
 
         shutil.rmtree(cls.mount_point)
@@ -46,17 +51,14 @@ class TestCryptbox(object):
         """
         runs before each test
         makes sure the file system is still running!
+
+        clear out the directory,
+        assert that listing it returns nothing
         """
         res = self.fs_process.poll()
         if res is not None:
             raise AssertionError("Filesystem shutdown! Exit code %d" % res)
 
-    def tearDown(self):
-        """
-        runs after each test
-        clear out the directory,
-        assert that listing it returns nothing
-        """
         for node in os.listdir(self.mirror_dir):
             full_path = os.path.join(self.mirror_dir, node)
             if os.path.isfile(full_path):
@@ -90,9 +92,10 @@ class TestCryptbox(object):
         path = os.path.join(self.mount_point, filename)
         with open(path, 'w') as f:
             f.write(message)
+            f.close()
 
         encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
-        with open(path, 'r') as f:
+        with open(encrypted_path, 'r') as f:
             contents = f.read()
             expected = cryptbox_files.UnencryptedFile(message).encrypt(TEST_PASSWORD).contents()
             assert expected == contents

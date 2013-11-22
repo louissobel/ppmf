@@ -1,7 +1,7 @@
-from cryptbox_files import EncryptedFile, UnencryptedFile
+from cryptbox_file_content import EncryptedContent, UnencryptedContent
 
 def test_roundtrip():
     message = "blooper dooper deepy doo"
     password = "he haw"
-    unc = UnencryptedFile(message)
+    unc = UnencryptedContent(message)
     assert message == unc.encrypt(password).decrypt(password).contents()

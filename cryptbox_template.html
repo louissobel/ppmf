@@ -8,9 +8,11 @@
                 , ciphertext = document.getElementById('ciphertext').textContent
                 , password = document.getElementById("password").value;
             console.log(password);
+
             plaintextHolder.textContent = decrypt(ciphertext, password);
             document.forms['decryptForm'].remove()
             document.getElementById('ciphertext').remove()
+            
             return false;
         };
 
@@ -31,7 +33,7 @@
         <input id="password" type="password">
         <input type="submit">
     </form>
-    
+
     <div>
         <pre id="ciphertext">%s</pre>
     </div>

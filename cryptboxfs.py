@@ -26,14 +26,26 @@ class CryptboxFS(fuse.Operations):
     def __init__(self, root):
         self.root = root
         self.rwlock = threading.Lock()
+        self.loglock = threading.Lock()
         self.temp_inode_to_path = {}
         self.dirty_temp_inode = set()
 
     def __call__(self, *args, **kwargs):
-        res = fuse.Operations.__call__(self, *args, **kwargs)
+        uid, gid, pid = fuse.fuse_get_context()
+        try:
+            res = fuse.Operations.__call__(self, *args, **kwargs)
+        except Exception as e:
+            self._log(pid, args, kwargs, e)
+            raise
+        else:
+            if VERBOSE:
+                self._log(pid, args, kwargs, res)
+            return res
+
+    def _log(self, *args):
         if VERBOSE:
-            print args, kwargs, res
-        return res
+            with self.loglock:
+                print "[cryptboxfs] %s" % ' '.join(str(a) for a in args)
 
     def _real_path_and_context(self, path):
         rel_path = path[1:]
@@ -124,6 +136,15 @@ class CryptboxFS(fuse.Operations):
 
     def access(self, path, mode):
         real_path, encrypted_context = self._real_path_and_context(path)
+        # first check for existence
+        exists = os.access(real_path, 0)
+        if not exists:
+            raise fuse.FuseOSError(errno.ENOENT)
+
+        if mode == 0:
+            # then we're done
+            return
+
         if not os.access(real_path, mode):
             raise fuse.FuseOSError(errno.EACCES)
 
@@ -163,7 +184,7 @@ class CryptboxFS(fuse.Operations):
         real_path, encrypted_context = self._real_path_and_context(path)
 
         # is creating it now necessary?
-        real_fd = os.open(real_path, os.O_WRONLY | os.O_CREAT, mode)
+        real_fd = os.open(real_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode)
         os.close(real_fd)
 
         fd = self._make_decrypted_fd('', real_path)
@@ -188,6 +209,7 @@ class CryptboxFS(fuse.Operations):
             return os.read(fd, size)
 
     def write(self, path, data, offset, fd):
+        self._log(type(data))
         with self.rwlock:
             self._mark_dirty(fd)
             os.lseek(fd, offset, 0)
@@ -214,7 +236,7 @@ class CryptboxFS(fuse.Operations):
         return ['.', '..'] + os.listdir(real_path)
 
 def main(root, mountpoint):
-    return fuse.FUSE(CryptboxFS(root), mountpoint, foreground=True)
+    return fuse.FUSE(CryptboxFS(root), mountpoint, foreground=True, debug=True)
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:

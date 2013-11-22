@@ -151,6 +151,10 @@ class CryptboxFS(fuse.Operations):
     def getattr(self, path, fh=None):
         real_path, encrypted_context = self._real_path_and_context(path)
 
+        class FakeFileInfo(object):
+            def __init__(self, flags):
+                self.flags = flags
+
         # this is tricky actually.
         # because of st_size
         # if in encypted context, want the real path
@@ -159,15 +163,17 @@ class CryptboxFS(fuse.Operations):
         if encrypted_context or os.path.isdir(real_path):
             st = os.lstat(real_path)
         else:
+            file_info = FakeFileInfo(0)
             try:
-                fd = self.open(path, 0)
+                self.open(path, file_info)
+                fd = file_info.fh
             except IOError:
                 e = OSError()
                 e.errno = 2
                 e.filename = path
                 raise e
             st = os.fstat(fd)
-            self.release(path, fd)
+            self.release(path, file_info)
 
         return dict((key, getattr(st, key)) for key in (
             'st_atime',
@@ -180,7 +186,7 @@ class CryptboxFS(fuse.Operations):
             'st_uid',
         ))
 
-    def create(self, path, mode):
+    def create(self, path, mode, file_info):
         real_path, encrypted_context = self._real_path_and_context(path)
 
         # is creating it now necessary?
@@ -189,36 +195,46 @@ class CryptboxFS(fuse.Operations):
 
         fd = self._make_decrypted_fd('', real_path)
         self._re_encrypt(fd)
-        return fd
+        file_info.fh = fd
+        file_info.direct_io = True
+        return 0
 
-    def open(self, path, flags):
+    def open(self, path, file_info):
         real_path, encrypted_context = self._real_path_and_context(path)
 
+        flags = file_info.flags
         if encrypted_context:
             # just return the file
-            return os.open(real_path, flags)
+            file_info.fh = os.open(real_path, flags)
+            return 0
 
         # otherwise, decrypt it
         # open and read the real file into the temp file
         decrypted_file = self._get_decrypted_file(real_path)
-        return self._make_decrypted_fd(decrypted_file.contents(), real_path)
+        file_info.fh = self._make_decrypted_fd(decrypted_file.contents(), real_path)
+        file_info.direct_io = True
+        return 0
 
-    def read(self, path, size, offset, fd):
+    def read(self, path, size, offset, file_info):
+        fd = file_info.fh
         with self.rwlock:
             os.lseek(fd, offset, 0)
-            return os.read(fd, size)
+            v = os.read(fd, size)
+            self._log('reading %d from %d, got %d' % (size, fd, len(v)))
+            return v
 
-    def write(self, path, data, offset, fd):
-        self._log(type(data))
+    def write(self, path, data, offset, file_info):
+        fd = file_info.fh
         with self.rwlock:
             self._mark_dirty(fd)
             os.lseek(fd, offset, 0)
             return os.write(fd, data)
 
-    def release(self, path, fd):
+    def release(self, path, file_info):
         """
         reencrypt it if we have to
         """
+        fd = file_info.fh
         if self._is_decrypted_fd(fd):
             if self._is_dirty(fd):
                 self._re_encrypt(fd)
@@ -236,7 +252,7 @@ class CryptboxFS(fuse.Operations):
         return ['.', '..'] + os.listdir(real_path)
 
 def main(root, mountpoint):
-    return fuse.FUSE(CryptboxFS(root), mountpoint, foreground=True, debug=True)
+    return fuse.FUSE(CryptboxFS(root), mountpoint, raw_fi=True, foreground=True)
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:

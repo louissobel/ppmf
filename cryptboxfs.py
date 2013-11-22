@@ -230,6 +230,36 @@ class CryptboxFS(fuse.Operations):
             os.lseek(fd, offset, 0)
             return os.write(fd, data)
 
+    def truncate(self, path, length, file_info=None):
+        """
+        file_info is none if this is a `truncate`
+        file_info is an object if an `ftruncate`
+        """
+        real_path, encrypted_context = self._real_path_and_context(path)
+
+        class FakeFileInfo(object):
+            def __init__(self, flags):
+                self.flags = flags
+
+        if file_info:
+            fd = file_info.fh
+        else:
+            # open it!
+            file_info = FakeFileInfo(0)
+            try:
+                self.open(path, file_info)
+            except IOError:
+                e = OSError()
+                e.errno = errno.ENOENT
+                e.filename = "No such file or directory"
+                raise e
+
+            fd = file_info.fh
+
+        self._mark_dirty(fd)
+        os.ftruncate(fd, length)
+        self.release(path, file_info)
+
     def release(self, path, file_info):
         """
         reencrypt it if we have to

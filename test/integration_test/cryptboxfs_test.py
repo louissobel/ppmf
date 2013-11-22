@@ -96,6 +96,32 @@ class TestCryptbox(unittest.TestCase):
         self.write_file(path, message)
         self.assertEqual(self.read_file(path), message)
 
+    def test_write_over_existing_file(self):
+        """
+        checks that overwriting existing file works
+        """
+        filename = 'floop'
+        path = os.path.join(self.mount_point, filename)
+        self.write_file(path, 'ok')
+
+        message = 'hehe'
+        self.write_file(path, message)
+        self.assertEqual(self.read_file(path), message)
+
+    def test_append_to_existing_file(self):
+        """
+        checks that overwriting existing file works
+        """
+        filename = 'floop'
+        path = os.path.join(self.mount_point, filename)
+        self.write_file(path, 'ok')
+
+        message = 'hehe'
+        with open(path, 'a') as f:
+            f.write(message)
+
+        self.assertEqual(self.read_file(path), 'ok' + message)
+
     def test_write_read_encrypted(self):
         """
         make sure that reading from the

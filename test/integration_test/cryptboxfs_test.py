@@ -4,9 +4,13 @@ Tests that is is working __basically__
 import tempfile
 import subprocess
 import shutil
+import os
 import os.path
 
 import cryptboxfs
+import cryptbox_files
+
+TEST_PASSWORD = 'password123'
 
 class TestCryptbox(object):
 
@@ -15,12 +19,15 @@ class TestCryptbox(object):
         """
          - create a mount dir
          - create a mirror dir
+         - set environment vars for fs testing
          - mount the fs in another process
         """
         cls.mirror_dir = tempfile.mkdtemp()
         cls.mount_point = tempfile.mkdtemp()
 
         cryptbox_path =  cryptboxfs.__file__
+        os.environ['TEST_CRYPTBOXFS'] = 'True'
+        os.environ['TEST_CRYPTBOXFS_PASSWORD'] = TEST_PASSWORD
         cls.fs_process = subprocess.Popen(['python', cryptbox_path, cls.mirror_dir, cls.mount_point])
 
     @classmethod
@@ -71,3 +78,21 @@ class TestCryptbox(object):
             f.write(message)
         with open(path, 'r') as f:
             assert f.read() == message
+
+    def test_write_read_encrypted(self):
+        """
+        make sure that reading from the
+        encrypted prefix gives an encrypted result
+        """
+        message = "Well hello."
+        filename = 'test.txt'
+
+        path = os.path.join(self.mount_point, filename)
+        with open(path, 'w') as f:
+            f.write(message)
+
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+        with open(path, 'r') as f:
+            contents = f.read()
+            expected = cryptbox_files.UnencryptedFile(message).encrypt(TEST_PASSWORD).contents()
+            assert expected == contents

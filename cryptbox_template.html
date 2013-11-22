@@ -1,0 +1,44 @@
+<html>
+    <head>
+    <title>Encrypted File</title>
+
+    <script type="text/javascript">
+        var showDecrypted = function() {
+            var plaintextHolder = document.getElementById('plaintext')
+                , ciphertext = document.getElementById('ciphertext').textContent
+                , password = document.getElementById("password").value;
+            console.log(password);
+
+            plaintextHolder.textContent = decrypt(ciphertext, password);
+            document.forms['decryptForm'].remove()
+            document.getElementById('ciphertext').remove()
+            
+            return false;
+        };
+
+        var decrypt = function(ciphertext, password) {
+            //decrypt ciphertext with password here
+            return "I'M DECRYPTED!!!"
+        }
+
+        var showPasswordForm = function () {
+            document.forms['decryptForm'].style.visibility = 'visible';
+        };
+    </script>
+    </head>
+
+    <body onload="showPasswordForm()">
+
+    <form id="decryptForm" onsubmit="return showDecrypted()" style="visibility: hidden;">
+        <input id="password" type="password">
+        <input type="submit">
+    </form>
+
+    <div>
+        <pre id="ciphertext">%s</pre>
+    </div>
+    <div>
+        <pre id="plaintext"></pre>
+    </div>
+    </body>
+</html>

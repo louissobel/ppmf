@@ -11,10 +11,10 @@ import core_encryption
 
 class CryptboxContent(object):
 
-    def __init__(self, contents):
-        self.file = StringIO(contents)
+    def __init__(self, value):
+        self.file = StringIO(value)
 
-    def contents(self):
+    def value(self):
         return self.file.getvalue()
 
 class EncryptedContent(CryptboxContent):
@@ -30,7 +30,7 @@ class EncryptedContent(CryptboxContent):
         gets the raw cipher text from whatever
         format this file is in
         """
-        return html_wrapper.unwrap(self.contents())
+        return html_wrapper.unwrap(self.value())
 
     def decrypt(self, password):
         ciphertext = self.extract_ciphertext()
@@ -44,7 +44,7 @@ class UnencryptedContent(CryptboxContent):
         """
         returns an encrypted file!
         """
-        plaintext = self.contents()
+        plaintext = self.value()
         ciphertext = core_encryption.encrypt(plaintext, password)
         formatted_content = html_wrapper.wrap(ciphertext)
         return EncryptedContent(formatted_content)

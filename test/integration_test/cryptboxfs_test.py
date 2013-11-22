@@ -8,13 +8,17 @@ import os
 import os.path
 import time
 import signal
+import random
+import unittest
+
+from nose.tools import nottest
 
 import cryptboxfs
 import cryptbox_files
 
 TEST_PASSWORD = 'password123'
 
-class TestCryptbox(object):
+class TestCryptbox(unittest.TestCase):
 
     @classmethod
     def setup_class(cls):
@@ -33,7 +37,7 @@ class TestCryptbox(object):
         cls.fs_process = subprocess.Popen(['python', cryptbox_path, cls.mirror_dir, cls.mount_point])
 
         # janky give it time to mount
-        time.sleep(3)
+        time.sleep(1)
 
     @classmethod
     def teardown_class(cls):
@@ -66,7 +70,20 @@ class TestCryptbox(object):
             else:
                 shutil.rmtree(full_path)
 
-        assert os.listdir(self.mount_point) == [], "Mount Point not empty after being cleared!"
+        expected_contents = [cryptboxfs.ENCRYPTION_PREFIX]
+        self.assertListEqual(os.listdir(self.mount_point), expected_contents, "Mount Point not empty after being cleared!")
+
+    def write_file(self, path, contents):
+        with open(path, 'w') as f:
+            f.write(contents)
+            f.close()
+
+    def read_file(self, path):
+        with open(path, 'r') as f:
+            return f.read()
+
+    def get_encrypted(self, message):
+        return cryptbox_files.UnencryptedFile(message).encrypt(TEST_PASSWORD).contents()
 
     def test_write_read(self):
         """
@@ -76,10 +93,8 @@ class TestCryptbox(object):
         path = os.path.join(self.mount_point, 'foobar')
 
         message = 'bloop doop $823- 19 \n\t2308 sdli2\d2083\ds\x03'
-        with open(path, 'w') as f:
-            f.write(message)
-        with open(path, 'r') as f:
-            assert f.read() == message
+        self.write_file(path, message)
+        self.assertEqual(self.read_file(path), message)
 
     def test_write_read_encrypted(self):
         """
@@ -90,12 +105,73 @@ class TestCryptbox(object):
         filename = 'test.txt'
 
         path = os.path.join(self.mount_point, filename)
-        with open(path, 'w') as f:
-            f.write(message)
-            f.close()
+        self.write_file(path, message)
 
         encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
-        with open(encrypted_path, 'r') as f:
-            contents = f.read()
-            expected = cryptbox_files.UnencryptedFile(message).encrypt(TEST_PASSWORD).contents()
-            assert expected == contents
+        cipher_text = self.read_file(encrypted_path)
+        expected = self.get_encrypted(message)
+        self.assertEqual(cipher_text, expected)
+
+    def test_listdir_root(self):
+        """
+        test listdir /
+        """
+        files = ['bloop', 'doop', 'dap']
+        for filename in files:
+            path = os.path.join(self.mount_point, filename)
+            self.write_file(path, 'ok')
+
+        self.assertItemsEqual(os.listdir(self.mount_point), files + [cryptboxfs.ENCRYPTION_PREFIX])
+
+    def test_listdir_encrypted(self):
+        """
+        test listdir /__enc__
+        """
+        files = ['bloop', 'doop', 'dap']
+        for filename in files:
+            path = os.path.join(self.mount_point, filename)
+            self.write_file(path, 'ok')
+
+        self.assertItemsEqual(os.listdir(os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX)), files)
+
+    def test_stat(self):
+        """
+        stat should return real size
+        """
+        size = random.randint(300, 500)
+        message = 'x' * size
+        path = os.path.join(self.mount_point, 'test')
+        self.write_file(path, message)
+
+        st = os.lstat(path)
+        self.assertEqual(st.st_size, size)
+
+    def test_stat_encrypted(self):
+        """
+        stat on enrypted file should size of the encrypted file
+        """
+        size = random.randint(100, 250)
+        message = 'x' * size
+        path = os.path.join(self.mount_point, 'test')
+        self.write_file(path, message)
+
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, 'test')
+        st = os.lstat(encrypted_path)
+        self.assertEqual(st.st_size, len(self.get_encrypted(message)))
+
+    def test_unlink(self):
+        """
+        test deleting a file
+        """
+        filename = 'deleteme'
+        path = os.path.join(self.mount_point, filename)
+        self.write_file(path, 'bah bah bah')
+
+        os.unlink(path)
+
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+        real_path = os.path.join(self.mirror_dir, filename)
+
+        self.assertFalse(os.path.exists(path))
+        self.assertFalse(os.path.exists(encrypted_path))
+        self.assertFalse(os.path.exists(real_path))

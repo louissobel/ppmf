@@ -169,8 +169,8 @@ class CryptboxFS(fuse.Operations):
                 fd = file_info.fh
             except IOError:
                 e = OSError()
-                e.errno = 2
-                e.filename = path
+                e.errno = errno.ENOENT
+                e.filename = "No such file or directory"
                 raise e
             st = os.fstat(fd)
             self.release(path, file_info)
@@ -249,7 +249,13 @@ class CryptboxFS(fuse.Operations):
 
     def readdir(self, path, fh):
         real_path, encrypted_context = self._real_path_and_context(path)
-        return ['.', '..'] + os.listdir(real_path)
+        contents = ['.', '..'] + os.listdir(real_path)
+
+        # add __enc__ for contents
+        if path == '/':
+            contents.append(ENCRYPTION_PREFIX)
+
+        return contents
 
 def main(root, mountpoint):
     return fuse.FUSE(CryptboxFS(root), mountpoint, raw_fi=True, foreground=True)

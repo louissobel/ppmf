@@ -10,44 +10,9 @@ Needs to handle HTML entities in the cipher and plain text
 Maybe base64 encode the ciphertext?
 """
 import re
+import fileinput
 
-HTML_TEMPLATE = """
-<html>
-    <head>
-    <title>Encrypted File</title>
-
-    <script type="text/javascript">
-        var decrypt = function (ciphertext, password) {
-            var firstNewline = ciphertext.indexOf('\\n');
-            return ciphertext.substring(firstNewline + 1);
-        };
-
-        var setUp = function () {
-            var ciphertextHolder = document.getElementById('ciphertext')
-              , plaintextHolder = document.getElementById('plaintext')
-              , decryptButton = document.getElementById('decrypt')
-              ;
-
-            decryptButton.addEventListener('click', function () {
-                plaintextHolder.textContent = decrypt(ciphertextHolder.textContent);
-            });
-        };
-    </script>
-    </head>
-
-    <body onload="setUp()">
-    <div>
-        <button id='decrypt'>Decrypt</button>
-    </div>
-    <div>
-        <pre id="ciphertext">%s</pre>
-    </div>
-    <div>
-        <pre id="plaintext"></pre>
-    </div>
-    </body>
-</html>
-"""
+HTML_TEMPLATE = open('cryptbox_template.html', 'r').read()
 
 def wrap(ciphertext):
     """
@@ -68,7 +33,7 @@ def unwrap(html_string):
 if __name__ == "__main__":
     import sys
 
-    source = sys.stdin.read()
+    source = ''.join([ line for line in fileinput.input(sys.argv[2:]) ])
     if sys.argv[1] == 'wrap':
         print wrap(source)
     elif sys.argv[1] == 'unwrap':

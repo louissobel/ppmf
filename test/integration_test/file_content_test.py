@@ -1,4 +1,4 @@
-from cryptbox_file_content import EncryptedContent, UnencryptedContent
+from file_content import EncryptedContent, UnencryptedContent
 
 def test_roundtrip():
     message = "blooper dooper deepy doo"

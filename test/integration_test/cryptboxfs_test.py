@@ -14,7 +14,7 @@ import unittest
 from nose.tools import nottest
 
 import cryptboxfs
-import cryptbox_files
+import file_content
 
 TEST_PASSWORD = 'password123'
 
@@ -83,7 +83,7 @@ class TestCryptbox(unittest.TestCase):
             return f.read()
 
     def get_encrypted(self, message):
-        return cryptbox_files.UnencryptedFile(message).encrypt(TEST_PASSWORD).contents()
+        return file_content.UnencryptedContent(message).encrypt(TEST_PASSWORD).value()
 
     def test_write_read(self):
         """

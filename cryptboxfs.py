@@ -11,7 +11,7 @@ import threading
 
 import fuse
 
-import cryptbox_files
+import file_structures
 import get_password
 
 VERBOSE = False
@@ -21,14 +21,17 @@ ENCRYPTION_PREFIX = '__enc__'
 class CryptboxFS(fuse.Operations):
     """
     File System
+
+    TODO: prevent writes to __enc__ tree?
+    TODO: think hard about concurrency + locking
     """
 
     def __init__(self, root):
         self.root = root
         self.rwlock = threading.Lock()
         self.loglock = threading.Lock()
-        self.temp_inode_to_path = {}
-        self.dirty_temp_inode = set()
+
+        self.file_manager = file_structures.DecryptedFileManager(get_password.get_password)
 
     def __call__(self, *args, **kwargs):
         uid, gid, pid = fuse.fuse_get_context()
@@ -60,80 +63,6 @@ class CryptboxFS(fuse.Operations):
         real_path = os.path.join(self.root, *components)
         return real_path, encrypted_context
 
-    def _get_inode(self, fd):
-        return os.fstat(fd).st_ino
-
-    def _register_decrypted_fd(self, fd, path):
-        self.temp_inode_to_path[self._get_inode(fd)] = path
-
-    def _deregister_fd(self, fd):
-        try:
-            del self.temp_inode_to_path[self._get_inode(fd)]
-        except KeyError:
-            # fine
-            pass
-
-        self._clear_dirty(fd)
-
-    def _mark_dirty(self, fd):
-        self.dirty_temp_inode.add(self._get_inode(fd))
-
-    def _clear_dirty(self, fd):
-        try:
-            self.dirty_temp_inode.remove(self._get_inode(fd))
-        except KeyError:
-            pass
-
-    def _is_dirty(self, fd):
-        return self._get_inode(fd) in self.dirty_temp_inode
-
-    def _is_decrypted_fd(self, fd):
-        return self._get_inode(fd) in self.temp_inode_to_path
-
-    def _encrypted_path(self, fd):
-        return self.temp_inode_to_path.get(self._get_inode(fd), None)
-
-    def _get_decrypted_file(self, path):
-        with open(path, 'rb') as f:
-            cipher = f.read()
-            encrypted_file = cryptbox_files.EncryptedFile(cipher)
-            decrypted_file = encrypted_file.decrypt(get_password.get_password("decrypting %s" % path))
-            return decrypted_file
-
-    def _make_decrypted_fd(self, contents, encrypted_path):
-        # open a temp file
-        temp_fd, temp_path = tempfile.mkstemp()
-
-        # map the inode of this fd to it's path so we know where to put it back
-        self._register_decrypted_fd(temp_fd, encrypted_path)
-
-        # write the contents to the fd and seek back
-        os.write(temp_fd, contents)
-
-        # move it back to the start
-        os.lseek(temp_fd, 0, os.SEEK_SET)
-        return temp_fd
-
-    def _re_encrypt(self, fd):
-        with self.rwlock:
-            if self._is_decrypted_fd(fd):
-                encrypted_path = self._encrypted_path(fd)
-
-                # encrypt contents back
-                size = os.lseek(fd, 0, os.SEEK_END)
-                os.lseek(fd, 0, os.SEEK_SET)
-                contents = os.read(fd, size)
-                unencrypted = cryptbox_files.UnencryptedFile(contents)
-                encrypted = unencrypted.encrypt(get_password.get_password("encrypting %s" % encrypted_path))
-
-                with open(encrypted_path, 'w') as f:
-                    f.write(encrypted.contents())
-
-                self._clear_dirty(fd)
-
-            else:
-                raise ValueError("Must be encrypted!")
-
     def access(self, path, mode):
         real_path, encrypted_context = self._real_path_and_context(path)
         # first check for existence
@@ -151,29 +80,27 @@ class CryptboxFS(fuse.Operations):
     def getattr(self, path, fh=None):
         real_path, encrypted_context = self._real_path_and_context(path)
 
-        class FakeFileInfo(object):
-            def __init__(self, flags):
-                self.flags = flags
-
         # this is tricky actually.
         # because of st_size
         # if in encypted context, want the real path
         # otherwise, decrypt it first
         # inefficient as balls right now
+
+        # TODO: properly handle stat call on __enc__ itself?
+        #       right now implicitly handled by real_path
         if encrypted_context or os.path.isdir(real_path):
             st = os.lstat(real_path)
         else:
-            file_info = FakeFileInfo(0)
             try:
-                self.open(path, file_info)
-                fd = file_info.fh
+                decrypted_file = self.file_manager.open(real_path)
             except IOError:
                 e = OSError()
                 e.errno = errno.ENOENT
                 e.filename = "No such file or directory"
                 raise e
+            fd = decrypted_file.fd
             st = os.fstat(fd)
-            self.release(path, file_info)
+            self.file_manager.close(decrypted_file)
 
         return dict((key, getattr(st, key)) for key in (
             'st_atime',
@@ -189,13 +116,11 @@ class CryptboxFS(fuse.Operations):
     def create(self, path, mode, file_info):
         real_path, encrypted_context = self._real_path_and_context(path)
 
-        # is creating it now necessary?
-        real_fd = os.open(real_path, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, mode)
-        os.close(real_fd)
+        with self.rwlock:
+            new_file = self.file_manager.open(real_path, create=True)
+            new_file.encrypt()
 
-        fd = self._make_decrypted_fd('', real_path)
-        self._re_encrypt(fd)
-        file_info.fh = fd
+        file_info.fh = new_file.fd
         file_info.direct_io = True
         return 0
 
@@ -208,27 +133,43 @@ class CryptboxFS(fuse.Operations):
             file_info.fh = os.open(real_path, flags)
             return 0
 
+        # TODO PARSE FLAGS
+
         # otherwise, decrypt it
         # open and read the real file into the temp file
-        decrypted_file = self._get_decrypted_file(real_path)
-        file_info.fh = self._make_decrypted_fd(decrypted_file.contents(), real_path)
+        decrypted_file = self.file_manager.open(real_path)
+        file_info.fh = decrypted_file.fd
         file_info.direct_io = True
         return 0
 
     def read(self, path, size, offset, file_info):
         fd = file_info.fh
         with self.rwlock:
-            os.lseek(fd, offset, 0)
-            v = os.read(fd, size)
-            self._log('reading %d from %d, got %d' % (size, fd, len(v)))
-            return v
+            # TODO lock file registry?
+            decrypted_file = self.file_manager.get_file(fd)
+            if decrypted_file is None:
+                # encrypted_context check should be more explicit?
+                # then just go on our merry way
+                os.lseek(fd, offset, os.SEEK_SET)
+                return os.read(fd, size)
+            else:
+                # TODO handle errors?
+                return decrypted_file.read(size, offset)
 
     def write(self, path, data, offset, file_info):
         fd = file_info.fh
         with self.rwlock:
-            self._mark_dirty(fd)
-            os.lseek(fd, offset, 0)
-            return os.write(fd, data)
+            # TODO lock file registry?
+            decrypted_file = self.file_manager.get_file(fd)
+            if decrypted_file is None:
+                # encrypted_context check should be more explicit?
+                # trying to write to a __enc__...
+                # TODO disallow that shit
+                os.lseek(fd, offset, os.SEEK_SET)
+                return os.write(fd, data)
+            else:
+                # TODO handle errors?
+                return decrypted_file.write(data, offset)
 
     def truncate(self, path, length, file_info=None):
         """
@@ -237,43 +178,41 @@ class CryptboxFS(fuse.Operations):
         """
         real_path, encrypted_context = self._real_path_and_context(path)
 
-        class FakeFileInfo(object):
-            def __init__(self, flags):
-                self.flags = flags
-
-        if file_info:
-            fd = file_info.fh
+        if encrypted_context:
+            # really should be complaining
+            # TODO disallow this
+            with open(path, 'r+') as f:
+                f.truncate(length)
         else:
-            # open it!
-            file_info = FakeFileInfo(0)
-            try:
-                self.open(path, file_info)
-            except IOError:
-                e = OSError()
-                e.errno = errno.ENOENT
-                e.filename = "No such file or directory"
-                raise e
+            if file_info:
+                fd = file_info.fh
+                decrypted_file = self.file_manager.get_file(fd)
+                if decrypted_file is None:
+                    raise ValueError('No decrypted file for non-__enc__ fd %d' % fd)
 
-            fd = file_info.fh
+            else:
+                # open it!
+                decrypted_file = self.file_manager.open(real_path)
 
-        self._mark_dirty(fd)
-        os.ftruncate(fd, length)
-        self.release(path, file_info)
+            decrypted_file.truncate(length)
+            self.file_manager.close(decrypted_file)
 
     def release(self, path, file_info):
         """
         reencrypt it if we have to
         """
         fd = file_info.fh
-        if self._is_decrypted_fd(fd):
-            if self._is_dirty(fd):
-                self._re_encrypt(fd)
-
-            self._deregister_fd(fd)
-
-        return os.close(fd)
+        # TODO lock the registry?
+        decrypted_file = self.file_manager.get_file(fd)
+        if decrypted_file is None:
+            # TODO more explicit __enc__ check?
+            # just close it
+            return os.close(fd)
+        else:
+            return self.file_manager.close(decrypted_file)
 
     def unlink(self, path):
+        # TODO: do we need to do anything about other handles on the file?
         real_path, encrypted_context = self._real_path_and_context(path)
         return os.unlink(real_path)
 
@@ -281,7 +220,7 @@ class CryptboxFS(fuse.Operations):
         real_path, encrypted_context = self._real_path_and_context(path)
         contents = ['.', '..'] + os.listdir(real_path)
 
-        # add __enc__ for contents
+        # add __enc__ for contents of /
         if path == '/':
             contents.append(ENCRYPTION_PREFIX)
 

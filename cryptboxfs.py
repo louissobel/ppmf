@@ -6,7 +6,6 @@ Encrypt on write
 import sys
 import os.path
 import errno
-import tempfile
 import threading
 
 import fuse

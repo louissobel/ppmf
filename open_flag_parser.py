@@ -37,5 +37,10 @@ class OpenFlags(object):
         for f in self.FIELDS:
             setattr(self, f, kwargs.get(f, False))
 
+    def __str__(self):
+        read = 'r' if self.read else ''
+        write = 'w' if self.write else ''
+        return (read + write) or '-'
+
 def parse(flags):
     return OpenFlags.from_int(flags)

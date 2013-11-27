@@ -257,4 +257,4 @@ class TestCryptbox(unittest.TestCase):
 
         with self.assertRaises(OSError) as cm:
             os.remove(encrypted_path)
-        self.assertEqual(cm.exception.errno, errno.EACCES)
+        self.assertEqual(cm.exception.errno, errno.EROFS)

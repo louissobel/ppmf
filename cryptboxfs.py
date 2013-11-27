@@ -21,7 +21,6 @@ class CryptboxFS(fuse.Operations):
     """
     File System
 
-    TODO: prevent writes to __enc__ tree?
     TODO: think hard about concurrency + locking
     """
 

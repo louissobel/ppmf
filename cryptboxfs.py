@@ -130,15 +130,17 @@ class CryptboxFS(fuse.Operations):
         if encrypted_context:
             # just return the file
             file_info.fh = os.open(real_path, flags)
-            return 0
+        else:
 
-        # TODO PARSE FLAGS
+            # TODO PARSE FLAGS
 
-        # otherwise, decrypt it
-        # open and read the real file into the temp file
-        decrypted_file = self.file_manager.open(real_path)
-        file_info.fh = decrypted_file.fd
-        file_info.direct_io = True
+            # otherwise, decrypt it
+            # open and read the real file into the temp file
+            decrypted_file = self.file_manager.open(real_path)
+            file_info.fh = decrypted_file.fd
+            file_info.direct_io = True
+
+        self._log('opened %s, fd %d' % (path, file_info.fh))
         return 0
 
     def read(self, path, size, offset, file_info):
@@ -156,16 +158,17 @@ class CryptboxFS(fuse.Operations):
                 return decrypted_file.read(size, offset)
 
     def write(self, path, data, offset, file_info):
+        real_path, encrypted_context = self._real_path_and_context(path)
+
+        if encrypted_context:
+            raise fuse.FuseOSError(errno.EROFS)
+
         fd = file_info.fh
         with self.rwlock:
             # TODO lock file registry?
             decrypted_file = self.file_manager.get_file(fd)
             if decrypted_file is None:
-                # encrypted_context check should be more explicit?
-                # trying to write to a __enc__...
-                # TODO disallow that shit
-                os.lseek(fd, offset, os.SEEK_SET)
-                return os.write(fd, data)
+                raise ValueError('No decrypted file for non-__enc__ fd %d' % fd)
             else:
                 # TODO handle errors?
                 return decrypted_file.write(data, offset)
@@ -178,26 +181,23 @@ class CryptboxFS(fuse.Operations):
         real_path, encrypted_context = self._real_path_and_context(path)
 
         if encrypted_context:
-            # really should be complaining
-            # TODO disallow this
-            with open(real_path, 'r+') as f:
-                f.truncate(length)
+            raise fuse.FuseOSError(errno.EROFS)
+
+        if file_info:
+            fd = file_info.fh
+            decrypted_file = self.file_manager.get_file(fd)
+            if decrypted_file is None:
+                raise ValueError('No decrypted file for non-__enc__ fd %d' % fd)
+            opened_file = False
+
         else:
-            if file_info:
-                fd = file_info.fh
-                decrypted_file = self.file_manager.get_file(fd)
-                if decrypted_file is None:
-                    raise ValueError('No decrypted file for non-__enc__ fd %d' % fd)
-                opened_file = False
+            # open it!
+            decrypted_file = self.file_manager.open(real_path)
+            opened_file = True
 
-            else:
-                # open it!
-                decrypted_file = self.file_manager.open(real_path)
-                opened_file = True
-
-            decrypted_file.truncate(length)
-            if opened_file:
-                self.file_manager.close(decrypted_file)
+        decrypted_file.truncate(length)
+        if opened_file:
+            self.file_manager.close(decrypted_file)
 
     def release(self, path, file_info):
         """
@@ -216,6 +216,10 @@ class CryptboxFS(fuse.Operations):
     def unlink(self, path):
         # TODO: do we need to do anything about other handles on the file?
         real_path, encrypted_context = self._real_path_and_context(path)
+
+        if encrypted_context:
+            raise fuse.FuseOSError(errno.EROFS)
+
         return os.unlink(real_path)
 
     def readdir(self, path, fh):

@@ -174,7 +174,7 @@ class CryptboxFS(fuse.Operations):
             # TODO lock file registry?
             decrypted_file = self.file_manager.get_file(fd)
             if decrypted_file is None:
-                raise ValueError('No decrypted file for non-__enc__ fd %d' % fd)
+                raise fuse.FuseOSError(errno.EBADF)
             else:
                 # TODO handle errors?
                 return decrypted_file.write(data, offset)
@@ -193,7 +193,7 @@ class CryptboxFS(fuse.Operations):
             fd = file_info.fh
             decrypted_file = self.file_manager.get_file(fd)
             if decrypted_file is None:
-                raise ValueError('No decrypted file for non-__enc__ fd %d' % fd)
+                raise fuse.FuseOSError(errno.EBADF)
             opened_file = False
 
         else:

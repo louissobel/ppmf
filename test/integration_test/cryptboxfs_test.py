@@ -203,6 +203,17 @@ class TestCryptbox(unittest.TestCase):
         self.assertFalse(os.path.exists(encrypted_path))
         self.assertFalse(os.path.exists(real_path))
 
+    def test_enc_create_fail(self):
+        """
+        creaeting a enc file should fail with EROFS
+        """
+        filename = 'bloop'
+        path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+
+        with self.assertRaises(OSError) as cm:
+            os.open(path, os.O_CREAT)
+        self.assertEqual(cm.exception.errno, errno.EROFS)
+
     def test_enc_write_fail(self):
         """
         writing to an enc fd should fail with EROFS

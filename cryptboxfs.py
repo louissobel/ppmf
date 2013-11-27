@@ -115,6 +115,9 @@ class CryptboxFS(fuse.Operations):
     def create(self, path, mode, file_info):
         real_path, encrypted_context = self._real_path_and_context(path)
 
+        if encrypted_context:
+            raise fuse.FuseOSError(errno.EROFS)
+
         with self.rwlock:
             new_file = self.file_manager.open(real_path, create=True)
             new_file.encrypt()

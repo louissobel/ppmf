@@ -209,15 +209,19 @@ class CryptboxFS(fuse.Operations):
         """
         reencrypt it if we have to
         """
+        real_path, encrypted_context = self._real_path_and_context(path)
+
         fd = file_info.fh
-        # TODO lock the registry?
-        decrypted_file = self.file_manager.get_file(fd)
-        if decrypted_file is None:
-            # TODO more explicit __enc__ check?
-            # just close it
+
+        if encrypted_context:
             return os.close(fd)
         else:
-            return self.file_manager.close(decrypted_file)
+            # TODO lock the registry?
+            decrypted_file = self.file_manager.get_file(fd)
+            if decrypted_file is None:
+                raise fuse.FuseOSError(errno.EBADF)
+            else:
+                return self.file_manager.close(decrypted_file)
 
     def unlink(self, path):
         # TODO: do we need to do anything about other handles on the file?

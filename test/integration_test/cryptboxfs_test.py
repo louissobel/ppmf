@@ -257,3 +257,21 @@ class TestCryptbox(unittest.TestCase):
         with self.assertRaises(OSError) as cm:
             os.remove(encrypted_path)
         self.assertEqual(cm.exception.errno, errno.EROFS)
+
+    def test_appending(self):
+        """
+        opening a file in append mode should work...
+        """
+        filename = 'bloop'
+        path = os.path.join(self.mount_point, 'bloop')
+
+        # open for appending
+        fd = os.open(path, os.O_RDWR | os.O_APPEND | os.O_CREAT)
+        os.write(fd, 'ABC'*10000)
+        os.lseek(fd, 0, os.SEEK_SET)
+
+        os.write(fd, '123'*10000)
+        os.lseek(fd, 0, os.SEEK_SET)
+
+        val = os.read(fd, (3 * 10000) * 2)
+        self.assertEqual(val, 'ABC' * 10000 + '123'*10000)

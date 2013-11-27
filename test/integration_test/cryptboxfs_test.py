@@ -10,6 +10,7 @@ import time
 import signal
 import random
 import unittest
+import errno
 
 from nose.tools import nottest
 
@@ -201,3 +202,59 @@ class TestCryptbox(unittest.TestCase):
         self.assertFalse(os.path.exists(path))
         self.assertFalse(os.path.exists(encrypted_path))
         self.assertFalse(os.path.exists(real_path))
+
+    def test_enc_access(self):
+        """
+        access on an enc for write should be False
+        """
+        filename = 'bloop'
+        path = os.path.join(self.mount_point, filename)
+        self.write_file(path, 'ok')
+
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+
+        self.assertFalse(os.access(encrypted_path, os.W_OK))
+
+    def test_enc_write_fail(self):
+        """
+        writing to an enc fd should fail with EROFS
+        """
+        filename = 'bloop'
+        path = os.path.join(self.mount_point, filename)
+        self.write_file(path, 'ok')
+
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+        fd = os.open(encrypted_path, os.O_WRONLY)
+
+        with self.assertRaises(OSError) as cm:
+            os.write(fd, 'NO NO NO')
+        self.assertEqual(cm.exception.errno, errno.EROFS) # read only filesystem
+
+    def test_enc_truncate_fail(self):
+        """
+        trying to truncate an enc fd should fail with EROFS
+        """
+        filename = 'bloop'
+        path = os.path.join(self.mount_point, filename)
+        self.write_file(path, 'ok')
+
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+        fd = os.open(encrypted_path, os.O_WRONLY)
+
+        with self.assertRaises(OSError) as cm:
+            os.ftruncate(fd, 0)
+        self.assertEqual(cm.exception.errno, errno.EROFS)
+
+    def test_enc_unlink_fail(self):
+        """
+        do not permit delete
+        """
+        filename = 'bloop'
+        path = os.path.join(self.mount_point, 'bloop')
+        self.write_file(path, 'ok')
+
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+
+        with self.assertRaises(OSError) as cm:
+            os.remove(encrypted_path)
+        self.assertEqual(cm.exception.errno, errno.EACCES)

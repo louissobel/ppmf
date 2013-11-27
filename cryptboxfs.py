@@ -147,18 +147,21 @@ class CryptboxFS(fuse.Operations):
         return 0
 
     def read(self, path, size, offset, file_info):
+        real_path, encrypted_context = self._real_path_and_context(path)
+
         fd = file_info.fh
         with self.rwlock:
-            # TODO lock file registry?
-            decrypted_file = self.file_manager.get_file(fd)
-            if decrypted_file is None:
-                # encrypted_context check should be more explicit?
-                # then just go on our merry way
+            if encrypted_context:
                 os.lseek(fd, offset, os.SEEK_SET)
                 return os.read(fd, size)
             else:
-                # TODO handle errors?
-                return decrypted_file.read(size, offset)
+                # TODO lock file registry?
+                decrypted_file = self.file_manager.get_file(fd)
+                if decrypted_file is None:
+                    raise fuse.FuseOSError(errno.EBADF)
+                else:
+                    # TODO handle errors?
+                    return decrypted_file.read(size, offset)
 
     def write(self, path, data, offset, file_info):
         real_path, encrypted_context = self._real_path_and_context(path)

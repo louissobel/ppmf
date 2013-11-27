@@ -180,7 +180,7 @@ class CryptboxFS(fuse.Operations):
         if encrypted_context:
             # really should be complaining
             # TODO disallow this
-            with open(path, 'r+') as f:
+            with open(real_path, 'r+') as f:
                 f.truncate(length)
         else:
             if file_info:
@@ -188,13 +188,16 @@ class CryptboxFS(fuse.Operations):
                 decrypted_file = self.file_manager.get_file(fd)
                 if decrypted_file is None:
                     raise ValueError('No decrypted file for non-__enc__ fd %d' % fd)
+                opened_file = False
 
             else:
                 # open it!
                 decrypted_file = self.file_manager.open(real_path)
+                opened_file = True
 
             decrypted_file.truncate(length)
-            self.file_manager.close(decrypted_file)
+            if opened_file:
+                self.file_manager.close(decrypted_file)
 
     def release(self, path, file_info):
         """

@@ -17,8 +17,8 @@
         };
 
         var decrypt = function(ciphertext, password) {
-            //decrypt ciphertext with password here
-            return "I'M DECRYPTED!!!"
+            //decrypt ciphertext with password here...right now this just returns the base64-decoded text
+            return "I'M DECRYPTED: \n" + atob(ciphertext)
         }
 
         var showPasswordForm = function () {

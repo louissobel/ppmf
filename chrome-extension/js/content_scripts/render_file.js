@@ -2,7 +2,8 @@
 var fileViewer = {
 
   renderFile: function(fileContents) {
-
+    //get data url for pdf
+    //what to do with file afterwards??? when do we remove?
     var fileUrl = fileViewer.writeToFile(fileContents);
 
     var fileViewerObj = $('#fileViewer');
@@ -14,6 +15,7 @@ var fileViewer = {
   },
 
   writeToFile: function(fileContents) {
+    //defaulting to the pdf file for now. Must integrate with filesystem api
     return 'hello-test.pdf';
   },
 };

@@ -18,6 +18,12 @@ HTML_TEMPLATE = open('cryptbox_template.html', 'r').read()
 def wrap(ciphertext):
     """
     returns html string wrapping the ciphertext
+
+    JSON object: {
+        ciphertext: ciphertext,
+        type: type of file,
+        name: filename...is this necessary? we can pull from dropbox preview, but maybe this is easier
+    }
     """
     return HTML_TEMPLATE % b64encode(ciphertext)
 

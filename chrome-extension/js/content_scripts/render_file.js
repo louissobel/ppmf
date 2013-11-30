@@ -1,50 +1,112 @@
+window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
+fs = null;
 
-var fileViewer = {
+var filesystem = {
 
-  renderFile: function(fileContents) {
-    //get data url for pdf
-    //what to do with file afterwards??? when do we remove?
-    var fileUrl = fileViewer.writeToFile(fileContents);
-
-    var fileViewerObj = $('#fileViewer');
-    $('#fileViewer').attr({
-        'data': fileUrl,
-        'type': 'application/pdf'
-      })
-      .css('visibility', 'visible');
+  _errorHandler: function(e) {
+    var msg = '';
+    switch (e.code) {
+      case FileError.QUOTA_EXCEEDED_ERR:
+        msg = 'QUOTA_EXCEEDED_ERR';
+        break;
+      case FileError.NOT_FOUND_ERR:
+        msg = 'NOT_FOUND_ERR';
+        break;
+      case FileError.SECURITY_ERR:
+        msg = 'SECURITY_ERR';
+        break;
+      case FileError.INVALID_MODIFICATION_ERR:
+        msg = 'INVALID_MODIFICATION_ERR';
+        break;
+      case FileError.INVALID_STATE_ERR:
+        msg = 'INVALID_STATE_ERR';
+        break;
+      default:
+        msg = 'Unknown Error';
+        break;
+    };
+    document.body.innerHTML = 'Error: ' + msg;
   },
 
-  writeToFile: function(fileContents) {
-    //defaulting to the pdf file for now. Must integrate with filesystem api
-    return 'hello-test.pdf';
+  initFS: function() {
+    if (fs !== null) {
+      return;
+    }
+
+    window.requestFileSystem(window.TEMPORARY, 1024*1024, function(filesystem) {
+      fs = filesystem;
+    }, filesystem._errorHandler);
   },
-};
+
+  writeToTmpFile: function(pathname, fileContents) {
+    //should different files be called different things or just overwrite with tmp?
+    pathname = pathname ? pathname : "tmp";
+    fs.root.getFile(pathname, {create: true}, function(fileEntry) {
+      fileEntry.createWriter(function(fileWriter) {
+          
+        fileWriter.onwriteend = function(e) {
+
+          //delete this file later?? right now will get overwritten by next one
+          var fileUrl = fileEntry.toURL();
+          var fileViewerObj = $('#fileViewer');
+          $('#fileViewer').attr({
+              'data': fileUrl,
+              'type': 'application/pdf'
+            })
+            .css('visibility', 'visible');
+        };
+
+        fileWriter.onerror = function(e) {
+          console.log('Write failed: ' + e.toString());
+        };
+
+        var blob = new Blob([filesystem._base64ToBytes(fileContents)]);
+
+        fileWriter.write(blob);
+
+      }, filesystem._errorHandler);
+
+    }, filesystem._errorHandler);
+
+  },
+
+  _base64ToBytes: function(text) {
+    //converts base64 encoded text into blobbbb
+    text = atob(text);
+    var byteNums = new Array(text.length);
+    for (var i in text) {
+      byteNums[i] = text.charCodeAt(i);
+    }
+    return new Uint8Array(byteNums);
+  }
+}
 
 $(function() {
-    $('#decryptForm').css('visibility', 'visible').submit(function() {
+  filesystem.initFS();
 
-      var ciphertext = $('#ciphertext').text().trim()
-          , password = $("#password").val();
-      console.log(password);
+  $('#decryptForm').css('visibility', 'visible').submit(function(evt) {
+    evt.preventDefault();
 
-      var decrypted = decrypt(ciphertext, password) 
-      if (decrypted.success) {
-        $('#decryptForm').remove();
-        $('#ciphertext').remove();
-        fileViewer.renderFile(decrypted.plaintext);
-      }
+    var ciphertext = $('#ciphertext').text().trim()
+        , password = $("#password").val();
+    console.log(password);
 
-      return false;
-
-    });
-
-    function decrypt(ciphertext, password) {
-        //decrypt ciphertext with password here...right now this just returns the base64-decoded text
-        return {
-          plaintext: atob(ciphertext),
-          success: true
-        }
+    var decrypted = decrypt(ciphertext, password) 
+    if (decrypted.success) {
+      $('#decryptForm').remove();
+      $('#ciphertext').remove();
+      filesystem.writeToTmpFile("tmp", decrypted.plaintext);
     }
+
+  });
+
+  function decrypt(ciphertext, password) {
+      //decrypt ciphertext with password here...right now this just returns the base64-encoded text
+      return {
+        plaintext: ciphertext,
+        success: true
+      }
+  }
 
 })
 

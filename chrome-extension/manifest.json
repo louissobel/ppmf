@@ -8,11 +8,13 @@
             "js": [
                 //also going to need to add the decrypt link adder later
                 "libs/jquery-1.10.2.min.js",
-                "js/content_scripts/render_file.js"
+                "js/content_scripts/render_file.js",
+                "js/content_scripts/link_adder.js"
             ], 
             "matches": [
-                //testing testing. this should be changed to the dropbox preview website later on
-                "file:///*"
+                "file:///*",
+                "https://dl-web.dropbox.com/get/*",
+                "https://www.dropbox.com/home*"
             ]
         }
     ], 

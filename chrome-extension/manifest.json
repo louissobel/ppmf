@@ -1,0 +1,24 @@
+{
+    "browser_action": {
+        "default_popup": "popup.html", 
+        "default_title": "Cryptbox file viewer"
+    }, 
+    "content_scripts": [
+        {
+            "js": [
+                "libs/jquery-1.10.2.min.js",
+                "js/content_scripts/render_file.js"
+            ], 
+            "matches": [
+                "file:///*"
+            ]
+        }
+    ], 
+    "description": "blahblah", 
+    "manifest_version": 2,
+    "name": "Cryptbox file viewer",
+    "permissions": [
+        "tabs"
+    ], 
+    "version": "0.0.0"
+}

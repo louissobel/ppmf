@@ -4,6 +4,7 @@ Encapsulation of an open decrypted file
 import os
 
 from file_content import EncryptedContent, UnencryptedContent, CryptboxContent
+from . import exceptions
 
 class OpenDecryptedFile(object):
 
@@ -20,8 +21,17 @@ class OpenDecryptedFile(object):
         self.fd = kwargs['fd']
         self.password = kwargs['password']
 
+        self.readable = kwargs['readable']
+        self.writable = kwargs['writable']
+
         self.dirty = False
         self.open = True
+
+    def is_read_only(self):
+        """
+        useful
+        """
+        return self.readable is True and self.writable is False
 
     def decrypt(self):
         """
@@ -55,7 +65,9 @@ class OpenDecryptedFile(object):
         """
         reads
         """
-        # TODO check if allowed to read?
+        if not self.readable:
+            raise exceptions.CannotRead('from fd %d' % self.fd)
+
         # TODO errors? they bubble right now
         fd = self.fd
         os.lseek(fd, offset, os.SEEK_SET)
@@ -65,7 +77,9 @@ class OpenDecryptedFile(object):
         """
         write!
         """
-        # TODO check if allowed to write
+        if not self.writable:
+            raise exceptions.CannotWrite('to fd %d' % self.fd)
+
         # TODO errors? let em bubble
         if len(data) > 0:
             self.dirty = True
@@ -77,7 +91,9 @@ class OpenDecryptedFile(object):
         """
         truncate
         """
-        # TODO check if allowed to write
+        if not self.writable:
+            raise exceptions.CannotWrite('to fd %d' % self.fd)
+
         # TODO errors? let em bubble
         self.dirty = True
         os.ftruncate(self.fd, length)

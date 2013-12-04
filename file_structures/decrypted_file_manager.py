@@ -57,11 +57,16 @@ class DecryptedFileManager(object):
         """
         password = self.get_password("opening %s" % path)
 
+        readable = kwargs.get('read', False)
+        writable = kwargs.get('write', False)
+
         # open a temp file
         temp_fd, temp_path = tempfile.mkstemp()
         open_file = OpenDecryptedFile(temp_path, path,
             fd=temp_fd,
             password=password,
+            readable=readable,
+            writable=writable,
         )
         self._register(open_file)
 

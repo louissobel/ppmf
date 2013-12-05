@@ -21,3 +21,14 @@ def test_chunksize():
         aes.encrypt(message, password),
         password
     )
+
+def test_blocksize():
+    """
+    roundtrip works when message is block size aligned
+    """
+    message = 'o' * aes.BLOCK_SIZE * 7
+    password = 'doop'
+    assert message == aes.decrypt(
+        aes.encrypt(message, password),
+        password
+    )

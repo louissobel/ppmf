@@ -1,15 +1,12 @@
 """
-modules with functions implementing core plaintext encryption
-
-core of the future encryption layers
+modules with functions implementing aes crypto
 """
-
 from hashlib import md5
-import io
-import itertools
 
 from Crypto.Cipher import AES
 from Crypto import Random
+
+from . import util
 
 KEY_LENGTH = 32 # bytes = 256 bits
 BLOCK_SIZE = AES.block_size
@@ -24,78 +21,59 @@ class AESWrapper(object):
     http://stackoverflow.com/questions/16761458/how-to-aes-encrypt-decrypt-files-using-python-pycrypto-in-an-openssl-compatible
     """
 
-    KEY_LENGTH = 32 # 8 * 32 = 256 bits
-
     def derive_key_and_iv(self, password, salt, iv_length):
+        """
+        returns key, iv
+        based on md5 of password
+        not super secure!
+        """
         d = d_i = ''
         while len(d) < KEY_LENGTH + iv_length:
             d_i = md5(d_i + password + salt).digest()
             d += d_i
         return d[:KEY_LENGTH], d[KEY_LENGTH:KEY_LENGTH+iv_length]
 
-    def pad(self, string, block_size):
-        padding_length = block_size - (len(string) % block_size)
-        return string + chr(padding_length) * padding_length
-
-    def chunks_of(self, string, size):
+    def get_cipher(self, password, salt):
         """
-        returns list of chunks of size bytes from string
-        last one may be less
+        builds and returns an Crypto.AES instance
+        based on given password and salt
         """
-        iterator = iter(string)
-        out = []
-        while True:
-            res = ''.join(itertools.islice(iterator, size))
-
-            if res:
-                out.append(res)
-            else:
-                return out
+        key, iv = self.derive_key_and_iv(password, salt, BLOCK_SIZE)
+        return AES.new(key, AES.MODE_CBC, iv)
 
     def encrypt(self, text, password):
-
+        """
+        encrypts the text given the password
+        compatible with OpenSSL AES
+        """
         salt = Random.new().read(BLOCK_SIZE - len(SALT_PREFIX))
-        key, iv = self.derive_key_and_iv(password, salt, BLOCK_SIZE)
+        cipher = self.get_cipher(password, salt)
 
-        cipher = AES.new(key, AES.MODE_CBC, iv)
-        chunks = self.chunks_of(text, size=CHUNK_SIZE)
-
-        out = []
-        out.append(SALT_PREFIX + salt)
-        for index, chunk in enumerate(chunks):
-            last_chunk = len(chunks) == index + 1
-
-            if last_chunk:
-                if len(chunk) == CHUNK_SIZE:
-                    # then we need to add a full padded block
-                    chunk = chunk + self.pad('', BLOCK_SIZE)
-                elif len(chunk) % BLOCK_SIZE != 0:
-                    # pad it to a multiple of block_size
-                    chunk = self.pad(chunk, BLOCK_SIZE)
-
+        header = SALT_PREFIX + salt
+        out = [header]
+        for chunk, is_last in util.chunks_of(text, size=CHUNK_SIZE):
+            if is_last:
+                chunk = util.pkcs7_pad(chunk, BLOCK_SIZE)
             out.append(cipher.encrypt(chunk))
 
         return ''.join(out)
 
     def decrypt(self, text, password):
+        """
+        decrypts the given text using the password
+        assumes ciphertext is OpenSSL compatible
+        """
         # first block is salt
         saltblock, ciphertext = text[:BLOCK_SIZE], text[BLOCK_SIZE:]
         salt = saltblock[len(SALT_PREFIX):]
-
-        chunks = self.chunks_of(ciphertext, size=CHUNK_SIZE)
-        key, iv = self.derive_key_and_iv(password, salt, BLOCK_SIZE)
-        cipher = AES.new(key, AES.MODE_CBC, iv)
+        cipher = self.get_cipher(password, salt)
 
         out = []
-        for index, chunk in enumerate(chunks):
-            last_chunk = len(chunks) == index + 1
-
+        for chunk, is_last in util.chunks_of(ciphertext, size=CHUNK_SIZE):
             decrypted_chunk = cipher.decrypt(chunk)
-            if last_chunk:
-                padding_length = ord(decrypted_chunk[-1])
-                out.append(decrypted_chunk[:-padding_length])
-            else:
-                out.append(decrypted_chunk)
+            if is_last:
+                decrypted_chunk = util.pkcs7_unpad(decrypted_chunk)
+            out.append(decrypted_chunk)
 
         return ''.join(out)
 

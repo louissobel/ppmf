@@ -10,3 +10,14 @@ def test_roundtrip():
         aes.encrypt(message, password),
         password
     )
+
+def test_chunksize():
+    """
+    roundtrip works when message is chunk size aligned
+    """
+    message = 'o' * aes.CHUNK_SIZE
+    password = 'poop'
+    assert message == aes.decrypt(
+        aes.encrypt(message, password),
+        password
+    )

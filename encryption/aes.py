@@ -11,9 +11,9 @@ import itertools
 from Crypto.Cipher import AES
 from Crypto import Random
 
-MEGABYTE = 1024
 KEY_LENGTH = 32 # bytes = 256 bits
 BLOCK_SIZE = AES.block_size
+CHUNK_SIZE = 1024 * BLOCK_SIZE
 SALT_PREFIX = 'Salted__'
 
 
@@ -58,7 +58,7 @@ class AESWrapper(object):
         key, iv = self.derive_key_and_iv(password, salt, BLOCK_SIZE)
 
         cipher = AES.new(key, AES.MODE_CBC, iv)
-        chunks = self.chunks_of(text, size=MEGABYTE * BLOCK_SIZE)
+        chunks = self.chunks_of(text, size=CHUNK_SIZE)
 
         out = []
         out.append(SALT_PREFIX + salt)
@@ -66,7 +66,7 @@ class AESWrapper(object):
             last_chunk = len(chunks) == index + 1
 
             if last_chunk:
-                if len(chunk) == MEGABYTE * BLOCK_SIZE:
+                if len(chunk) == CHUNK_SIZE:
                     # then we need to add a full padded block
                     chunk = chunk + self.pad('', BLOCK_SIZE)
                 elif len(chunk) % BLOCK_SIZE != 0:
@@ -82,7 +82,7 @@ class AESWrapper(object):
         saltblock, ciphertext = text[:BLOCK_SIZE], text[BLOCK_SIZE:]
         salt = saltblock[len(SALT_PREFIX):]
 
-        chunks = self.chunks_of(ciphertext, size=MEGABYTE * BLOCK_SIZE)
+        chunks = self.chunks_of(ciphertext, size=CHUNK_SIZE)
         key, iv = self.derive_key_and_iv(password, salt, BLOCK_SIZE)
         cipher = AES.new(key, AES.MODE_CBC, iv)
 

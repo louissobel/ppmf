@@ -13,7 +13,10 @@ import re
 import fileinput
 from base64 import b64encode, b64decode
 
-HTML_TEMPLATE = open('cryptbox_template.html', 'r').read()
+import jinja2
+
+# TODO: this is a lil jank
+HTML_TEMPLATE = jinja2.Template(open('cryptbox_template.html', 'r').read())
 
 def wrap(ciphertext):
     """
@@ -25,7 +28,7 @@ def wrap(ciphertext):
         name: filename...is this necessary? we can pull from dropbox preview, but maybe this is easier
     }
     """
-    return HTML_TEMPLATE % b64encode(ciphertext)
+    return HTML_TEMPLATE.render(ciphertext=b64encode(ciphertext))
 
 def unwrap(html_string):
     """

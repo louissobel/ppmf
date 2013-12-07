@@ -86,6 +86,9 @@ class TestCryptbox(unittest.TestCase):
     def get_encrypted(self, message):
         return file_content.UnencryptedContent(message).encrypt(TEST_PASSWORD).value()
 
+    def get_decrypted(self, message):
+        return file_content.EncryptedContent(message).decrypt(TEST_PASSWORD).value()
+
     def test_write_read(self):
         """
         makes sure I can write to the mount point
@@ -136,8 +139,9 @@ class TestCryptbox(unittest.TestCase):
 
         encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
         cipher_text = self.read_file(encrypted_path)
-        expected = self.get_encrypted(message)
-        self.assertEqual(cipher_text, expected)
+        decrypted = self.get_decrypted(cipher_text)
+
+        self.assertEqual(message, decrypted)
 
     def test_listdir_root(self):
         """

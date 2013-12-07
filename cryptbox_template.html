@@ -8,14 +8,49 @@
 
     <body>
 
-    <form id="decryptForm" style="visibility: hidden;">
-        <input id="password" type="password">
-        <input type="submit">
-    </form>
+        <form id="decryptForm" style="visibility: hidden;" onsubmit="return submitDecrypt()">
+            <input id="password" type="password">
+            <input type="submit">
+        </form>
 
-    <div>
-        <pre id="ciphertext">%s</pre>
-    </div>
-    <object id="fileViewer" style="visibility: hidden;"></object>
+        <object id="fileViewer" style="visibility: hidden;"></object>
+
     </body>
+
+    <script type="text/javascript">
+        var cipherFile = '%s';
+        document.addEventListener('DOMContentLoaded', function() {
+            decryptForm = document.forms['decryptForm']
+                , fileViewer = document.getElementById('fileViewer')
+                , passwordInput = document.forms['decryptForm'].children['password'];
+
+            decryptForm.style.visibility = 'visible';
+
+        });
+
+        function submitDecrypt() {
+
+            var password = passwordInput.value;
+
+            var decrypted = decrypt(cipherFile, password);
+            if (decrypted.success) {
+              decryptForm.remove();
+              // ciphertextHolder.remove();
+              fileViewer.data = 'data:application/pdf;base64,' + ciphertext;
+              fileViewer.type = 'application/pdf';
+              fileViewer.style.visibility = 'visible';
+            }
+
+            return false;
+        }
+
+        function decrypt(ciphertext, password) {
+          //decrypt ciphertext with password here...right now this just returns the base64-encoded text
+            return {
+                plaintext: ciphertext,
+                success: true
+            }
+        }
+
+    </script>
 </html>

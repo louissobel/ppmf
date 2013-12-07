@@ -95,7 +95,11 @@ $(function() {
     if (decrypted.success) {
       $('#decryptForm').remove();
       $('#ciphertext').remove();
-      filesystem.writeToTmpFile("tmp", decrypted.plaintext);
+      $('#fileViewer').attr({
+        'data': 'data:application/pdf;base64,' + ciphertext,
+        'type' : 'application/pdf'
+      });
+      // filesystem.writeToTmpFile("tmp", decrypted.plaintext);x`
     }
 
   });

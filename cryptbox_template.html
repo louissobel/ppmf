@@ -48,14 +48,18 @@
             <input id="password" type="password">
             <input type="submit">
         </form>
+        <div>
+            <pre id="ciphertext">{{ ciphertext }}</pre>
+        </div>
 
         <object id="fileViewer" style="visibility: hidden;"></object>
+
     </body>
 
     <script type="text/javascript">
-        var cipherFile = '%s';
         document.addEventListener('DOMContentLoaded', function() {
             decryptForm = document.forms['decryptForm']
+                , ciphertextHolder = document.getElementById('ciphertext')
                 , fileViewer = document.getElementById('fileViewer')
                 , passwordInput = document.forms['decryptForm'].children['password'];
 
@@ -64,10 +68,10 @@
         });
 
         function submitDecrypt() {
-
+            var ciphertext = ciphertextHolder.textContent;
             var password = passwordInput.value;
 
-            var decrypted = decrypt(cipherFile, password);
+            var decrypted = decrypt(ciphertext, password);
             if (decrypted.success) {
               decryptForm.remove();
               // ciphertextHolder.remove();
@@ -80,9 +84,9 @@
         }
 
         function decrypt(ciphertext, password) {
-          //decrypt ciphertext with password here...right now this just returns the base64-encoded text
+            var decrypted = CryptoJS.AES.decrypt(ciphertext, password);
             return {
-                plaintext: ciphertext,
+                plaintext: decrypted.toString(CryptoJS.enc.Utf8),
                 success: true
             }
         }

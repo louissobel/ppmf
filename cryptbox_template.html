@@ -52,7 +52,7 @@
             <pre id="ciphertext">{{ ciphertext }}</pre>
         </div>
 
-        <object id="fileViewer" style="visibility: hidden;"></object>
+        <object id="fileViewer" style="visibility: hidden;" width="100%" height="100%"></object>
 
     </body>
 
@@ -68,15 +68,15 @@
         });
 
         function submitDecrypt() {
-            var ciphertext = ciphertextHolder.textContent;
+            var ciphertextJSON = JSON.parse(atob(ciphertextHolder.textContent));
             var password = passwordInput.value;
 
-            var decrypted = decrypt(ciphertext, password);
+            var decrypted = decrypt(ciphertextJSON.ciphertext, password);
             if (decrypted.success) {
               decryptForm.remove();
-              // ciphertextHolder.remove();
-              fileViewer.data = 'data:application/pdf;base64,' + ciphertext;
-              fileViewer.type = 'application/pdf';
+              ciphertextHolder.remove();
+              fileViewer.data = 'data:' + ciphertextJSON.mimetype + ';base64,' + decrypted.plaintext;
+              fileViewer.type = ciphertextJSON.mimetype;
               fileViewer.style.visibility = 'visible';
             }
 
@@ -86,7 +86,8 @@
         function decrypt(ciphertext, password) {
             var decrypted = CryptoJS.AES.decrypt(ciphertext, password);
             return {
-                plaintext: decrypted.toString(CryptoJS.enc.Utf8),
+                // plaintext: decrypted.toString(CryptoJS.enc.Utf8),
+                plaintext: ciphertext,
                 success: true
             }
         }

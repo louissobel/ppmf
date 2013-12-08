@@ -12,6 +12,8 @@ Maybe base64 encode the ciphertext?
 import re
 import fileinput
 from base64 import b64encode, b64decode
+import json
+import mimetypes
 
 import jinja2
 
@@ -28,7 +30,14 @@ def wrap(ciphertext):
         name: filename...is this necessary? we can pull from dropbox preview, but maybe this is easier
     }
     """
-    return HTML_TEMPLATE.render(ciphertext=b64encode(ciphertext))
+    # is it okay that we're not encrypting mimetype?
+    # todo: encrypt b64encoded, not b64encode encrypted
+    ciphertext_json = {
+        "ciphertext" : b64encode(ciphertext),
+        "mimetype" : mimetypes.guess_type(fileinput.filename())[0],
+        "key" : []
+    }
+    return HTML_TEMPLATE.render(ciphertext=b64encode(json.dumps(ciphertext_json)))
 
 def unwrap(html_string):
     """
@@ -38,7 +47,8 @@ def unwrap(html_string):
     if not match:
         raise ValueError
     else:
-        return b64decode(match.group(1))
+        ciphertext_json = json.loads(b64decode(match.group(1)))
+        return b64decode(ciphertext_json['ciphertext'])
 
 if __name__ == "__main__":
     import sys

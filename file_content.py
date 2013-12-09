@@ -6,7 +6,7 @@ Convenience methods for accessing their different parts, too
 from StringIO import StringIO
 
 import html_wrapper
-import core_encryption
+from encryption import aes
 
 
 class CryptboxContent(object):
@@ -34,7 +34,7 @@ class EncryptedContent(CryptboxContent):
 
     def decrypt(self, password):
         ciphertext = self.extract_ciphertext()
-        plaintext = core_encryption.decrypt(ciphertext, password)
+        plaintext = aes.decrypt(ciphertext, password)
         return UnencryptedContent(plaintext)
 
 
@@ -45,6 +45,6 @@ class UnencryptedContent(CryptboxContent):
         returns an encrypted file!
         """
         plaintext = self.value()
-        ciphertext = core_encryption.encrypt(plaintext, password)
+        ciphertext = aes.encrypt(plaintext, password)
         formatted_content = html_wrapper.wrap(ciphertext)
         return EncryptedContent(formatted_content)

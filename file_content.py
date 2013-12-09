@@ -7,12 +7,15 @@ from StringIO import StringIO
 
 import html_wrapper
 from encryption import aes
+from mimetypes import guess_type
 
 
 class CryptboxContent(object):
 
-    def __init__(self, value):
+    def __init__(self, value, filename=None):
         self.file = StringIO(value)
+        if filename is not None:
+            self.mimetype = guess_type(filename)[0]
 
     def value(self):
         return self.file.getvalue()
@@ -44,7 +47,8 @@ class UnencryptedContent(CryptboxContent):
         """
         returns an encrypted file!
         """
+        print "password is ", password
         plaintext = self.value()
         ciphertext = aes.encrypt(plaintext, password)
-        formatted_content = html_wrapper.wrap(ciphertext)
+        formatted_content = html_wrapper.wrap(ciphertext, self.mimetype)
         return EncryptedContent(formatted_content)

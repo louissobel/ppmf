@@ -20,7 +20,7 @@ import jinja2
 # TODO: this is a lil jank
 HTML_TEMPLATE = jinja2.Template(open('cryptbox_template.html', 'r').read())
 
-def wrap(ciphertext):
+def wrap(ciphertext, mimetype):
     """
     returns html string wrapping the ciphertext
 
@@ -31,10 +31,9 @@ def wrap(ciphertext):
     }
     """
     # is it okay that we're not encrypting mimetype?
-    # todo: encrypt b64encoded, not b64encode encrypted
     ciphertext_json = {
         "ciphertext" : b64encode(ciphertext),
-        "mimetype" : mimetypes.guess_type(fileinput.filename())[0],
+        "mimetype" : mimetype,
         "key" : []
     }
     return HTML_TEMPLATE.render(ciphertext=b64encode(json.dumps(ciphertext_json)))
@@ -53,9 +52,14 @@ def unwrap(html_string):
 if __name__ == "__main__":
     import sys
 
-    source = ''.join([ line for line in fileinput.input(sys.argv[2:]) ])
+    source = ''.join([ line for line in fileinput.input(sys.argv[2:][0]) ])
     if sys.argv[1] == 'wrap':
-        print wrap(source)
+        try:
+            mimetype = mimetypes.guess_type(fileinput.filename())[0]
+        except:
+            mimetype = ''
+        print wrap(source, mimetype)
+        fileinput.close()
     elif sys.argv[1] == 'unwrap':
         print unwrap(source)
     else:

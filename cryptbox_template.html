@@ -42,12 +42,14 @@
 
     </head>
 
-    <body>
+    <body onload="showDecryptForm()">
 
         <form id="decryptForm" style="visibility: hidden;" onsubmit="return submitDecrypt()">
             <input id="password" type="password">
             <input type="submit">
         </form>
+        <div id="errorMessage">
+        </div>
         <div>
             <pre id="ciphertext">{{ ciphertext }}</pre>
         </div>
@@ -57,7 +59,7 @@
     </body>
 
     <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', function() {
+        function showDecryptForm() {
             decryptForm = document.forms['decryptForm']
                 , ciphertextHolder = document.getElementById('ciphertext')
                 , fileViewer = document.getElementById('fileViewer')
@@ -65,31 +67,32 @@
 
             decryptForm.style.visibility = 'visible';
 
-        });
+        };
 
         function submitDecrypt() {
             var ciphertextJSON = JSON.parse(atob(ciphertextHolder.textContent));
             var password = passwordInput.value;
 
-            var decrypted = decrypt(ciphertextJSON.ciphertext, password);
-            if (decrypted.success) {
-              decryptForm.remove();
-              ciphertextHolder.remove();
-              fileViewer.data = 'data:' + ciphertextJSON.mimetype + ';base64,' + decrypted.plaintext;
-              fileViewer.type = ciphertextJSON.mimetype;
-              fileViewer.style.visibility = 'visible';
+            try {
+                var decrypted = decrypt(ciphertextJSON.ciphertext, password);
+
+                decryptForm.remove();
+                ciphertextHolder.remove();
+                fileViewer.data = 'data:' + ciphertextJSON.mimetype + ';base64,' + decrypted;
+                fileViewer.type = ciphertextJSON.mimetype;
+                fileViewer.style.visibility = 'visible';
+            } catch(err) {
+                document.getElementById("errorMessage").textContent = "womp womp :(";
+            } finally {
+                return false;
             }
 
-            return false;
         }
 
         function decrypt(ciphertext, password) {
+            //takes in b64encoded and outputs b64encoded
             var decrypted = CryptoJS.AES.decrypt(ciphertext, password);
-            return {
-                // plaintext: decrypted.toString(CryptoJS.enc.Utf8),
-                plaintext: ciphertext,
-                success: true
-            }
+            return decrypted.toString(CryptoJS.enc.Base64)
         }
 
     </script>

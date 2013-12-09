@@ -4,6 +4,7 @@ File manager for open decrypted files
 import os
 import tempfile
 import threading
+import mimetypes
 
 from open_decrypted_file import OpenDecryptedFile
 
@@ -61,7 +62,11 @@ class DecryptedFileManager(object):
         writable = kwargs.get('write', False)
 
         # open a temp file
-        temp_fd, temp_path = tempfile.mkstemp()
+        mimetype = mimetypes.guess_type(path)
+        temp_extension = ''
+        if mimetype[0] is not None:
+            temp_extension = mimetypes.guess_extension(mimetype[0])
+        temp_fd, temp_path = tempfile.mkstemp(temp_extension)
         open_file = OpenDecryptedFile(temp_path, path,
             fd=temp_fd,
             password=password,

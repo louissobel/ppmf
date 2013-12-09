@@ -132,7 +132,7 @@ class OpenDecryptedFile(object):
         else:
             raise ValueError('Either path or fd must be specified')
 
-        return content_klass(contents)
+        return content_klass(contents, self.path)
 
     def _dump_file(self, content, path=None, fd=None):
         """

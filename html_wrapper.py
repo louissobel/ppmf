@@ -12,17 +12,31 @@ Maybe base64 encode the ciphertext?
 import re
 import fileinput
 from base64 import b64encode, b64decode
+import json
+import mimetypes
 
 import jinja2
 
 # TODO: this is a lil jank
 HTML_TEMPLATE = jinja2.Template(open('cryptbox_template.html', 'r').read())
 
-def wrap(ciphertext):
+def wrap(ciphertext, mimetype):
     """
     returns html string wrapping the ciphertext
+
+    JSON object: {
+        ciphertext: ciphertext,
+        type: type of file,
+        name: filename...is this necessary? we can pull from dropbox preview, but maybe this is easier
+    }
     """
-    return HTML_TEMPLATE.render(ciphertext=b64encode(ciphertext))
+    # is it okay that we're not encrypting mimetype?
+    ciphertext_json = {
+        "ciphertext" : b64encode(ciphertext),
+        "mimetype" : mimetype,
+        "key" : []
+    }
+    return HTML_TEMPLATE.render(ciphertext=b64encode(json.dumps(ciphertext_json)))
 
 def unwrap(html_string):
     """
@@ -32,14 +46,20 @@ def unwrap(html_string):
     if not match:
         raise ValueError
     else:
-        return b64decode(match.group(1))
+        ciphertext_json = json.loads(b64decode(match.group(1)))
+        return b64decode(ciphertext_json['ciphertext'])
 
 if __name__ == "__main__":
     import sys
 
-    source = ''.join([ line for line in fileinput.input(sys.argv[2:]) ])
+    source = ''.join([ line for line in fileinput.input(sys.argv[2:][0]) ])
     if sys.argv[1] == 'wrap':
-        print wrap(source)
+        try:
+            mimetype = mimetypes.guess_type(fileinput.filename())[0]
+        except:
+            mimetype = ''
+        print wrap(source, mimetype)
+        fileinput.close()
     elif sys.argv[1] == 'unwrap':
         print unwrap(source)
     else:

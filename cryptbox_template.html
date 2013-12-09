@@ -2,31 +2,6 @@
     <head>
     <title>Encrypted File</title>
 
-    <script type="text/javascript">
-        var showDecrypted = function() {
-            var plaintextHolder = document.getElementById('plaintext')
-                , ciphertext = document.getElementById('ciphertext').textContent
-                , password = document.getElementById("password").value;
-            console.log(password);
-
-            plaintextHolder.textContent = decrypt(ciphertext, password);
-            document.forms['decryptForm'].remove()
-            document.getElementById('ciphertext').remove()
-            
-            return false;
-        };
-
-        var decrypt = function(ciphertext, password) {
-            //decrypt ciphertext with password here...right now this just returns the base64-decoded text
-            var decrypted = CryptoJS.AES.decrypt(ciphertext, password);
-            return decrypted.toString(CryptoJS.enc.Utf8);
-        }
-
-        var showPasswordForm = function () {
-            document.forms['decryptForm'].style.visibility = 'visible';
-        };
-    </script>
-
     <script>
     /*
     CryptoJS v3.1.2
@@ -67,18 +42,58 @@
 
     </head>
 
-    <body onload="showPasswordForm()">
+    <body onload="showDecryptForm()">
 
-    <form id="decryptForm" onsubmit="return showDecrypted()" style="visibility: hidden;">
-        <input id="password" type="password">
-        <input type="submit">
-    </form>
+        <form id="decryptForm" style="visibility: hidden;" onsubmit="return submitDecrypt()">
+            <input id="password" type="password">
+            <input type="submit">
+        </form>
+        <div id="errorMessage">
+        </div>
+        <div>
+            <pre id="ciphertext">{{ ciphertext }}</pre>
+        </div>
 
-    <div>
-        <pre id="ciphertext">{{ ciphertext }}</pre>
-    </div>
-    <div>
-        <pre id="plaintext"></pre>
-    </div>
+        <object id="fileViewer" style="visibility: hidden;" width="100%" height="100%"></object>
+
     </body>
+
+    <script type="text/javascript">
+        function showDecryptForm() {
+            decryptForm = document.forms['decryptForm']
+                , ciphertextHolder = document.getElementById('ciphertext')
+                , fileViewer = document.getElementById('fileViewer')
+                , passwordInput = document.forms['decryptForm'].children['password'];
+
+            decryptForm.style.visibility = 'visible';
+
+        };
+
+        function submitDecrypt() {
+            var ciphertextJSON = JSON.parse(atob(ciphertextHolder.textContent));
+            var password = passwordInput.value;
+
+            try {
+                var decrypted = decrypt(ciphertextJSON.ciphertext, password);
+
+                decryptForm.remove();
+                ciphertextHolder.remove();
+                fileViewer.data = 'data:' + ciphertextJSON.mimetype + ';base64,' + decrypted;
+                fileViewer.type = ciphertextJSON.mimetype;
+                fileViewer.style.visibility = 'visible';
+            } catch(err) {
+                document.getElementById("errorMessage").textContent = "womp womp :(";
+            } finally {
+                return false;
+            }
+
+        }
+
+        function decrypt(ciphertext, password) {
+            //takes in b64encoded and outputs b64encoded
+            var decrypted = CryptoJS.AES.decrypt(ciphertext, password);
+            return decrypted.toString(CryptoJS.enc.Base64)
+        }
+
+    </script>
 </html>

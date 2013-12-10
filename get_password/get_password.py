@@ -14,7 +14,7 @@ def get_password(forwhat):
     # testing?
     if os.environ.get('TEST_CRYPTBOXFS') is not None:
         return using_test.get_password(forwhat)
-
+        
     if p.startswith('linux'):
         return using_tkinter.get_password(forwhat)
     elif p.startswith('darwin'):

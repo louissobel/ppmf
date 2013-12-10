@@ -70,7 +70,11 @@ class DecryptedFileManager(object):
         )
         self._register(open_file)
 
-        if not kwargs.get('create', False):
+        if kwargs.get('create', False):
+            # we need to create the encrypted empty version
+            open_file.encrypt()
+        else:
+            # load decrypted version
             open_file.decrypt()
 
         return open_file

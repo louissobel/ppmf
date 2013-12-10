@@ -127,7 +127,6 @@ class CryptboxFS(fuse.Operations):
                 read=open_flags.read,
                 write=open_flags.write,
             )
-            new_file.encrypt()
 
         file_info.fh = new_file.fd
         file_info.direct_io = True

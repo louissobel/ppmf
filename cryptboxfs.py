@@ -87,19 +87,20 @@ class CryptboxFS(fuse.Operations):
 
         # TODO: properly handle stat call on __enc__ itself?
         #       right now implicitly handled by real_path
-        if encrypted_context or os.path.isdir(real_path):
-            st = os.lstat(real_path)
-        else:
-            try:
-                decrypted_file = self.file_manager.open(real_path)
-            except IOError:
-                e = OSError()
-                e.errno = errno.ENOENT
-                e.filename = "No such file or directory"
-                raise e
-            fd = decrypted_file.fd
-            st = os.fstat(fd)
-            self.file_manager.close(decrypted_file)
+        with self.rwlock:
+            if encrypted_context or os.path.isdir(real_path):
+                st = os.lstat(real_path)
+            else:
+                try:
+                    decrypted_file = self.file_manager.open(real_path)
+                except IOError:
+                    e = OSError()
+                    e.errno = errno.ENOENT
+                    e.filename = "No such file or directory"
+                    raise e
+                fd = decrypted_file.fd
+                st = os.fstat(fd)
+                self.file_manager.close(decrypted_file)
 
         return dict((key, getattr(st, key)) for key in (
             'st_atime',
@@ -126,7 +127,6 @@ class CryptboxFS(fuse.Operations):
                 read=open_flags.read,
                 write=open_flags.write,
             )
-            new_file.encrypt()
 
         file_info.fh = new_file.fd
         file_info.direct_io = True
@@ -143,10 +143,12 @@ class CryptboxFS(fuse.Operations):
         if encrypted_context:
             file_info.fh = os.open(real_path, flags)
         else:
-            decrypted_file = self.file_manager.open(real_path,
-                read=open_flags.read,
-                write=open_flags.write,
-            )
+            with self.rwlock:
+                decrypted_file = self.file_manager.open(real_path,
+                    read=open_flags.read,
+                    write=open_flags.write,
+                )
+
             file_info.fh = decrypted_file.fd
             file_info.direct_io = True
 
@@ -236,12 +238,12 @@ class CryptboxFS(fuse.Operations):
         if encrypted_context:
             return os.close(fd)
         else:
-            # TODO lock the registry?
-            decrypted_file = self.file_manager.get_file(fd)
-            if decrypted_file is None:
-                raise fuse.FuseOSError(errno.EBADF)
-            else:
-                return self.file_manager.close(decrypted_file)
+            with self.rwlock:
+                decrypted_file = self.file_manager.get_file(fd)
+                if decrypted_file is None:
+                    raise fuse.FuseOSError(errno.EBADF)
+                else:
+                    return self.file_manager.close(decrypted_file)
 
     def unlink(self, path):
         # TODO: do we need to do anything about other handles on the file?
@@ -254,7 +256,9 @@ class CryptboxFS(fuse.Operations):
 
     def readdir(self, path, fh):
         real_path, encrypted_context = self._real_path_and_context(path)
-        contents = ['.', '..'] + os.listdir(real_path)
+
+        with self.rwlock:
+            contents = ['.', '..'] + os.listdir(real_path)
 
         # add __enc__ for contents of /
         if path == '/':

@@ -280,3 +280,26 @@ class TestCryptbox(unittest.TestCase):
 
         val = os.read(fd, (3 * 10000) * 2)
         self.assertEqual(val, 'ABC' * 10000 + '123'*10000)
+
+    def test_open_notexist_file(self):
+        """
+        trying to open a file that does not exist should through an OS ENOENT err
+        """
+        filename = 'idontexist'
+        path = os.path.join(self.mount_point, filename)
+
+        with self.assertRaises(OSError) as cm:
+            os.open(path, os.O_RDONLY)
+        self.assertEqual(cm.exception.errno, errno.ENOENT)
+
+    def test_open_notexist_enc_file(self):
+        """
+        trying to open a file through __enc__ should throw an error
+        if that file does not exist
+        """
+        filename = 'idontexist_enc'
+        path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+
+        with self.assertRaises(OSError) as cm:
+            os.open(path, os.O_RDONLY)
+        self.assertEqual(cm.exception.errno, errno.ENOENT)

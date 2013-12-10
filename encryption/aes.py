@@ -77,7 +77,6 @@ class AESWrapper(object):
 
         return ''.join(out)
 
-
 ## Module level wrappers
 
 def encrypt(plaintext, password):
@@ -91,7 +90,6 @@ def decrypt(ciphertext, password):
     decrypts that shit!
     """
     return AESWrapper().decrypt(ciphertext, password)
-
 
 if __name__ == "__main__":
     import sys

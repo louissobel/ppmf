@@ -34,7 +34,7 @@ def wrap(ciphertext, mimetype):
     ciphertext_json = {
         "ciphertext" : b64encode(ciphertext),
         "mimetype" : mimetype,
-        "key" : []
+        "keys" : {}
     }
     return HTML_TEMPLATE.render(ciphertext=b64encode(json.dumps(ciphertext_json)))
 
@@ -46,8 +46,7 @@ def unwrap(html_string):
     if not match:
         raise ValueError
     else:
-        ciphertext_json = json.loads(b64decode(match.group(1)))
-        return b64decode(ciphertext_json['ciphertext'])
+        return json.loads(b64decode(match.group(1)))
 
 if __name__ == "__main__":
     import sys

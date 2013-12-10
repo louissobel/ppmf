@@ -150,10 +150,12 @@ class OpenDecryptedFile(object):
             os.lseek(fd, 0, os.SEEK_SET)
             location = os.write(fd, content.value())
             os.ftruncate(fd, location)
+            # TODO: do I need fsync? no flush on fd...
         elif path is not None:
             # use path then
             with open(path, 'wb') as f:
                 f.write(content.value())
+                f.flush()
         else:
             raise ValueError('Either path of fd must be specified')
 

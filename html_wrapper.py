@@ -44,7 +44,7 @@ def unwrap(html_string):
     """
     match = re.search(r'\<pre id="ciphertext"\>(.*?)\</pre\>', html_string, re.DOTALL)
     if not match:
-        raise ValueError
+        raise ValueError("html_string %r does not match" % html_string)
     else:
         ciphertext_json = json.loads(b64decode(match.group(1)))
         return b64decode(ciphertext_json['ciphertext'])

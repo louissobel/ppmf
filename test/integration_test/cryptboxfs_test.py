@@ -94,7 +94,7 @@ class TestCryptbox(unittest.TestCase):
         makes sure I can write to the mount point
         and read back the same thing
         """
-        path = os.path.join(self.mount_point, 'foobar')
+        path = os.path.join(self.mount_point, 'foobar_writeread')
 
         message = 'bloop doop $823- 19 \n\t2308 sdli2\d2083\ds\x03'
         self.write_file(path, message)
@@ -104,7 +104,7 @@ class TestCryptbox(unittest.TestCase):
         """
         checks that overwriting existing file works
         """
-        filename = 'floop'
+        filename = 'floop_write_over_existing'
         path = os.path.join(self.mount_point, filename)
         self.write_file(path, 'ok')
 
@@ -116,7 +116,7 @@ class TestCryptbox(unittest.TestCase):
         """
         checks that overwriting existing file works
         """
-        filename = 'floop'
+        filename = 'floop_append_to_existing'
         path = os.path.join(self.mount_point, filename)
         self.write_file(path, 'ok')
 
@@ -132,7 +132,7 @@ class TestCryptbox(unittest.TestCase):
         encrypted prefix gives an encrypted result
         """
         message = "Well hello."
-        filename = 'test.txt'
+        filename = 'test_write_read_encrypted'
 
         path = os.path.join(self.mount_point, filename)
         self.write_file(path, message)
@@ -147,7 +147,7 @@ class TestCryptbox(unittest.TestCase):
         """
         test listdir /
         """
-        files = ['bloop', 'doop', 'dap']
+        files = ['bloop_lsroot', 'doop_lsroot', 'dap_lsroot']
         for filename in files:
             path = os.path.join(self.mount_point, filename)
             self.write_file(path, 'ok')
@@ -158,7 +158,7 @@ class TestCryptbox(unittest.TestCase):
         """
         test listdir /__enc__
         """
-        files = ['bloop', 'doop', 'dap']
+        files = ['bloop_lsenc', 'doop_lsenc', 'dap_lsenc']
         for filename in files:
             path = os.path.join(self.mount_point, filename)
             self.write_file(path, 'ok')
@@ -171,7 +171,7 @@ class TestCryptbox(unittest.TestCase):
         """
         size = random.randint(300, 500)
         message = 'x' * size
-        path = os.path.join(self.mount_point, 'test')
+        path = os.path.join(self.mount_point, 'test_stat')
         self.write_file(path, message)
 
         st = os.lstat(path)
@@ -183,10 +183,11 @@ class TestCryptbox(unittest.TestCase):
         """
         size = random.randint(100, 250)
         message = 'x' * size
-        path = os.path.join(self.mount_point, 'test')
+        filename = 'test_stat_enc'
+        path = os.path.join(self.mount_point, filename)
         self.write_file(path, message)
 
-        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, 'test')
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
         st = os.lstat(encrypted_path)
         self.assertEqual(st.st_size, len(self.get_encrypted(message)))
 
@@ -194,7 +195,7 @@ class TestCryptbox(unittest.TestCase):
         """
         test deleting a file
         """
-        filename = 'deleteme'
+        filename = 'deleteme_unlink'
         path = os.path.join(self.mount_point, filename)
         self.write_file(path, 'bah bah bah')
 
@@ -211,7 +212,7 @@ class TestCryptbox(unittest.TestCase):
         """
         creaeting a enc file should fail with EROFS
         """
-        filename = 'bloop'
+        filename = 'bloop_enc_create_fail'
         path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
 
         with self.assertRaises(OSError) as cm:
@@ -222,7 +223,7 @@ class TestCryptbox(unittest.TestCase):
         """
         writing to an enc fd should fail with EROFS
         """
-        filename = 'bloop'
+        filename = 'bloop_enc_write_fail'
         path = os.path.join(self.mount_point, filename)
         self.write_file(path, 'ok')
 
@@ -237,7 +238,7 @@ class TestCryptbox(unittest.TestCase):
         """
         trying to truncate an enc fd should fail with EROFS
         """
-        filename = 'bloop'
+        filename = 'bloop_enc_truncate_fail'
         path = os.path.join(self.mount_point, filename)
         self.write_file(path, 'ok')
 
@@ -252,8 +253,8 @@ class TestCryptbox(unittest.TestCase):
         """
         do not permit delete
         """
-        filename = 'bloop'
-        path = os.path.join(self.mount_point, 'bloop')
+        filename = 'bloop_enc_unlink_fail'
+        path = os.path.join(self.mount_point, filename)
         self.write_file(path, 'ok')
 
         encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
@@ -266,8 +267,8 @@ class TestCryptbox(unittest.TestCase):
         """
         opening a file in append mode should work...
         """
-        filename = 'bloop'
-        path = os.path.join(self.mount_point, 'bloop')
+        filename = 'bloop_appending'
+        path = os.path.join(self.mount_point, filename)
 
         # open for appending
         fd = os.open(path, os.O_RDWR | os.O_APPEND | os.O_CREAT)

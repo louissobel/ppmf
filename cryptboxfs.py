@@ -11,7 +11,6 @@ import threading
 import fuse
 
 import file_structures
-import get_password
 import open_flag_parser
 
 VERBOSE = False
@@ -23,14 +22,16 @@ class CryptboxFS(fuse.Operations):
     File System
 
     TODO: think hard about concurrency + locking
+    let's make config_pathname be absolute for now
     """
 
-    def __init__(self, root):
+    def __init__(self, root, config_pathname):
         self.root = root
         self.rwlock = threading.Lock()
         self.loglock = threading.Lock()
 
-        self.file_manager = file_structures.DecryptedFileManager(get_password.get_password)
+        credentials = file_structures.CredentialConfigManager(root, config_pathname)
+        self.file_manager = file_structures.DecryptedFileManager(root, credentials)
 
     def __call__(self, *args, **kwargs):
         uid, gid, pid = fuse.fuse_get_context()
@@ -297,19 +298,19 @@ class CryptboxFS(fuse.Operations):
 
         return contents
 
-def main(root, mountpoint):
-    return fuse.FUSE(CryptboxFS(root), mountpoint, raw_fi=True, foreground=True)
+def main(root, mountpoint, config_file):
+    return fuse.FUSE(CryptboxFS(root, config_file), mountpoint, raw_fi=True, foreground=True)
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage: %s <root> <mountpoint>' % sys.argv[0])
+        print('usage: %s <root> <mountpoint> <config file>' % sys.argv[0])
         sys.exit(1)
 
     try:
-        if sys.argv[3] == '-v':
+        if sys.argv[4] == '-v':
             VERBOSE = True
     except IndexError:
         # fine
         pass
 
-    fuse = main(sys.argv[1], sys.argv[2])
+    fuse = main(sys.argv[1], sys.argv[2], sys.argv[3])

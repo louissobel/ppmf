@@ -25,7 +25,7 @@ class OpenDecryptedFile(object):
         self.fd = fd
         self.source_path = source_path
 
-        self.password = kwargs['password']
+        self.credentials = kwargs['credentials']
 
         self.dirty = False
         self.reference_count = 0
@@ -58,7 +58,7 @@ class OpenDecryptedFile(object):
         tempfile. is that even possible? nah.
         """
         ciphertext = self._load_ciphertext(path=self.source_path)
-        plaintext = ciphertext.decrypt(self.password)
+        plaintext = ciphertext.decrypt(**self.credentials)
         self._dump_file(plaintext, fd=self.fd)
 
     def encrypt(self):
@@ -69,7 +69,7 @@ class OpenDecryptedFile(object):
         NOT THREAD SAFE SOMEONE ELSE COULD BE WRITING TO SOURCE PATH?
         """
         plaintext = self._load_plaintext(fd=self.fd)
-        ciphertext = plaintext.encrypt(self.password)
+        ciphertext = plaintext.encrypt(**self.credentials)
         self._dump_file(ciphertext, path=self.source_path)
 
     def changed(self):

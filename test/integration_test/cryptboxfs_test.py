@@ -16,8 +16,7 @@ from nose.tools import nottest
 
 import cryptboxfs
 import file_content
-
-TEST_PASSWORD = 'password123'
+from file_structures import CredentialConfigManager
 
 class TestCryptbox(unittest.TestCase):
 
@@ -31,11 +30,11 @@ class TestCryptbox(unittest.TestCase):
         """
         cls.mirror_dir = tempfile.mkdtemp()
         cls.mount_point = tempfile.mkdtemp()
+        cls.config_file = "cryptbox_test_config.json"
+        cls.credentials = CredentialConfigManager(cls.mirror_dir, cls.config_file)
 
         cryptbox_path =  cryptboxfs.__file__
-        os.environ['TEST_CRYPTBOXFS'] = 'True'
-        os.environ['TEST_CRYPTBOXFS_PASSWORD'] = TEST_PASSWORD
-        cls.fs_process = subprocess.Popen(['python', cryptbox_path, cls.mirror_dir, cls.mount_point])
+        cls.fs_process = subprocess.Popen(['python', cryptbox_path, cls.mirror_dir, cls.mount_point, cls.config_file])
 
         # janky give it time to mount
         time.sleep(1)
@@ -84,10 +83,12 @@ class TestCryptbox(unittest.TestCase):
             return f.read()
 
     def get_encrypted(self, message, filename):
-        return file_content.UnencryptedContent(message, filename=filename).encrypt(TEST_PASSWORD).value()
+        creds = self.credentials.file_creds_for(filename)
+        return file_content.UnencryptedContent(message, filename=filename).encrypt(**creds).value()
 
-    def get_decrypted(self, message):
-        return file_content.EncryptedContent(message).decrypt(TEST_PASSWORD).value()
+    def get_decrypted(self, message, filename):
+        creds = self.credentials.file_creds_for(filename)
+        return file_content.EncryptedContent(message).decrypt(**creds).value()
 
     def test_write_read(self):
         """
@@ -151,7 +152,24 @@ class TestCryptbox(unittest.TestCase):
 
         encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
         cipher_text = self.read_file(encrypted_path)
-        decrypted = self.get_decrypted(cipher_text)
+        decrypted = self.get_decrypted(cipher_text, filename)
+
+        self.assertEqual(message, decrypted)
+
+    def test_write_read_encrypted_using_config(self):
+        """
+        make sure that reading from the
+        encrypted prefix gives an encrypted result
+        """
+        message = "Well hello!!!!!!!"
+        filename = 'test_using_config.html' # this filename has a special password in the config
+
+        path = os.path.join(self.mount_point, filename)
+        self.write_file(path, message)
+
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+        cipher_text = self.read_file(encrypted_path)
+        decrypted = self.get_decrypted(cipher_text, filename)
 
         self.assertEqual(message, decrypted)
 
@@ -332,7 +350,7 @@ class TestCryptbox(unittest.TestCase):
 
         # read encrypted... after decryption it should match message
         cipher_text = self.read_file(encrypted_path)
-        decrypted = self.get_decrypted(cipher_text)
+        decrypted = self.get_decrypted(cipher_text, filename)
 
         self.assertEqual(decrypted, message)
 

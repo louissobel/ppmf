@@ -83,8 +83,8 @@ class TestCryptbox(unittest.TestCase):
         with open(path, 'r') as f:
             return f.read()
 
-    def get_encrypted(self, message):
-        return file_content.UnencryptedContent(message).encrypt(TEST_PASSWORD).value()
+    def get_encrypted(self, message, filename):
+        return file_content.UnencryptedContent(message, filename=filename).encrypt(TEST_PASSWORD).value()
 
     def get_decrypted(self, message):
         return file_content.EncryptedContent(message).decrypt(TEST_PASSWORD).value()
@@ -183,13 +183,13 @@ class TestCryptbox(unittest.TestCase):
         """
         size = random.randint(100, 250)
         message = 'x' * size
-        filename = 'test_stat_enc'
+        filename = 'test_stat_enc.txt'
         path = os.path.join(self.mount_point, filename)
         self.write_file(path, message)
 
         encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
         st = os.lstat(encrypted_path)
-        self.assertEqual(st.st_size, len(self.get_encrypted(message)))
+        self.assertEqual(st.st_size, len(self.get_encrypted(message, filename)))
 
     def test_unlink(self):
         """

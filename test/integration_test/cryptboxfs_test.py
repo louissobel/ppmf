@@ -316,6 +316,7 @@ class TestCryptbox(unittest.TestCase):
         fh = open(path, 'w')
         fh.write(message)
         fh.flush()
+        os.fsync(fh.fileno())
 
         # read encrypted... after decryption it should match message
         cipher_text = self.read_file(encrypted_path)

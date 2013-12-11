@@ -27,6 +27,15 @@ class RSAWrapper(object):
         #should we do some other fingerprinting here...? using just md5 hash for now, don't think it matters
         return md5(key).hexdigest()
 
+    def generate_keypair(self, bits=2048):
+        """
+        taken from https://launchkey.com/docs/api/encryption
+        """
+        new_key = RSA.generate(bits, e=65537) 
+        public_key = new_key.publickey().exportKey("PEM") 
+        private_key = new_key.exportKey("PEM") 
+        return private_key, public_key
+
 def encrypt(plaintext, public_key):
     """
     encrypts that shit

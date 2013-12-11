@@ -112,6 +112,18 @@ class TestCryptbox(unittest.TestCase):
         self.write_file(path, message)
         self.assertEqual(self.read_file(path), message)
 
+    def test_write_over_existing_file_shorter(self):
+        """
+        checks that overwriting existing file with shorter content works
+        """
+        filename = 'floop_write_over_existing_shorter'
+        path = os.path.join(self.mount_point, filename)
+        self.write_file(path, 'okokokok')
+
+        message = 'hehe'
+        self.write_file(path, message)
+        self.assertEqual(self.read_file(path), message)
+
     def test_append_to_existing_file(self):
         """
         checks that overwriting existing file works
@@ -304,11 +316,11 @@ class TestCryptbox(unittest.TestCase):
             os.open(path, os.O_RDONLY)
         self.assertEqual(cm.exception.errno, errno.ENOENT)
 
-    def test_flush(self):
+    def test_fsync(self):
         """
-        flush!
+        fsync!
         """
-        filename = 'test_flush.txt'
+        filename = 'test_fsync.txt'
         path = os.path.join(self.mount_point, filename)
         encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
 
@@ -323,3 +335,22 @@ class TestCryptbox(unittest.TestCase):
         decrypted = self.get_decrypted(cipher_text)
 
         self.assertEqual(decrypted, message)
+
+    def test_flush(self):
+        """
+        flush
+        """
+        filename = 'test_flush.txt'
+        path = os.path.join(self.mount_point, filename)
+
+        message = 'yippee yippee'
+        fh = open(path, 'w')
+        fh2 = open(path, 'r')
+
+        fh.write(message)
+        fh.flush()
+
+        fh3 = open(path, 'r')
+
+        self.assertEqual(fh2.read(), message)
+        self.assertEqual(fh3.read(), message)

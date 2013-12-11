@@ -19,10 +19,11 @@ class OpenDecryptedFile(object):
         self.source_path = source_path
 
         self.fd = kwargs['fd']
-        self.password = kwargs['password']
 
         self.readable = kwargs['readable']
         self.writable = kwargs['writable']
+
+        self.credentials = kwargs['credentials']
 
         self.dirty = False
         self.open = True
@@ -44,7 +45,7 @@ class OpenDecryptedFile(object):
         tempfile. is that even possible? nah.
         """
         ciphertext = self._load_ciphertext(path=self.source_path)
-        plaintext = ciphertext.decrypt(self.password)
+        plaintext = ciphertext.decrypt(**self.credentials)
         self._dump_file(plaintext, fd=self.fd)
 
         # make sure fd is seeked to start
@@ -58,7 +59,7 @@ class OpenDecryptedFile(object):
         NOT THREAD SAFE SOMEONE ELSE COULD BE WRITING TO SOURCE PATH
         """
         plaintext = self._load_plaintext(fd=self.fd)
-        ciphertext = plaintext.encrypt(self.password)
+        ciphertext = plaintext.encrypt(**self.credentials)
         self._dump_file(ciphertext, path=self.source_path)
 
     def read(self, size, offset):

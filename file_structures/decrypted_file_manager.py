@@ -13,11 +13,11 @@ class DecryptedFileManager(object):
     manages access and existence of cryptbox files
     """
 
-    def __init__(self, get_password):
+    def __init__(self, credentials):
         self.open_files_by_inode = {}
         self.registry_lock = threading.Lock()
 
-        self.get_password = get_password
+        self.credentials = credentials
 
     def _inode_for_fd(self, fd):
         """
@@ -54,9 +54,7 @@ class DecryptedFileManager(object):
     def open(self, path, **kwargs):
         """
         path is path on filesystem to encrypted version of the file
-        password is password to decrypt the mother fucker
         """
-        password = self.get_password("opening %s" % path)
 
         readable = kwargs.get('read', False)
         writable = kwargs.get('write', False)
@@ -67,11 +65,20 @@ class DecryptedFileManager(object):
         if mimetype[0] is not None:
             temp_extension = mimetypes.guess_extension(mimetype[0])
         temp_fd, temp_path = tempfile.mkstemp(temp_extension)
+
+
+        file_creds = {
+            "rsa_key_pair" : (self.credentials.get_public_key(), self.credentials.get_private_key()),
+            "default_password" : self.credentials.get_default_password(),
+            "password" : self.credentials.get_password_for(path),
+            "public_keys" : self.credentials.get_public_keys_for(path),
+        }
+
         open_file = OpenDecryptedFile(temp_path, path,
             fd=temp_fd,
-            password=password,
             readable=readable,
             writable=writable,
+            credentials=file_creds
         )
         self._register(open_file)
 

@@ -34,13 +34,14 @@ class EncryptedContent(CryptboxContent):
         super(EncryptedContent, self).__init__(value)
         self.cipherblock = html_wrapper.unwrap(self.value())
 
-    def extract_encrypted_aes_key(self, public_key):
-        """
-        uses public key to get the RSA-encrypted AES key
-        returns none if no match
-        """
+    def extract_password(self, public_key, private_key):
         fingerprint = rsa.get_fingerprint(public_key)
-        return self.cipherblock["keys"].get(fingerprint, None)
+        encrypted_aes_key = self.cipherblock["keys"].get(fingerprint, None)
+
+        if encrypted_aes_key is not None:
+            return rsa.decrypt(encrypted_aes_key, private_key)
+        return None
+
 
     def extract_ciphertext(self):
         """
@@ -53,29 +54,36 @@ class EncryptedContent(CryptboxContent):
         #i am not sure if we need this
         return self.cipherblock["mimetype"]
 
-    def decrypt(self, password=None, rsa_key_pair=None):
-        #where to get the key?
+
+    def decrypt(self, **kwargs):
+        # this will throw an error if no password or public key is found
         ciphertext, plaintext = self.extract_ciphertext(), None
-        if rsa_key_pair is not None:
-            public_key, private_key = rsa_key_pair
-            encrypted_aes_key = self.extract_encrypted_aes_key(public_key)
-            if encrypted_aes_key is not None:
-                aes_key = rsa.decrypt(self.extract_encrypted_aes_key(public_key), private_key)
-                plaintext = aes.decrypt(ciphertext, aes_key)
-            elif password is not none:
-                plaintext = aes.decrypt(ciphertext, password)
-        elif password is not None:            
-            plaintext = aes.decrypt(ciphertext, password)
+
+        password = None
+        if kwargs['password'] is not None:
+            password = kwargs['password'])
+        elif kwargs['rsa_key_pair'] is not None:
+            password = self.extract_password(*(kwargs['rsa_key_pair']))
         
+        if password is None:
+            password = kwargs['default_password'].encode('utf-8')
+
+        plaintext = aes.decrypt(ciphertext, password)        
         return UnencryptedContent(plaintext)
 
 class UnencryptedContent(CryptboxContent):
 
-    def encrypt(self, password, keys=[]):
+    def encrypt(self, **kwargs):
         """
         returns an encrypted file!
         keys is a list of public keys to encrypt with
         """
+        password = kwargs['password']
+        if password is None:
+            password = kwargs['default_password']
+
+        keys = kwargs.get('public_keys', [])
+
         plaintext = self.value()
         ciphertext = aes.encrypt(plaintext, password)
         encrypted_keys = dict( [(rsa.get_fingerprint(key), rsa.encrypt(password, key)) for key in keys] )

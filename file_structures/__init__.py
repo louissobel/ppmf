@@ -1,4 +1,5 @@
 from decrypted_file_manager import DecryptedFileManager
 from open_decrypted_file import OpenDecryptedFile
+from config_file_manager import CredentialConfigManager
 
 import exceptions

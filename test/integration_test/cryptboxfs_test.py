@@ -31,11 +31,12 @@ class TestCryptbox(unittest.TestCase):
         """
         cls.mirror_dir = tempfile.mkdtemp()
         cls.mount_point = tempfile.mkdtemp()
+        cls.config_file = "/home/stephanie/work/cryptbox/cryptbox.config"
 
         cryptbox_path =  cryptboxfs.__file__
         os.environ['TEST_CRYPTBOXFS'] = 'True'
         os.environ['TEST_CRYPTBOXFS_PASSWORD'] = TEST_PASSWORD
-        cls.fs_process = subprocess.Popen(['python', cryptbox_path, cls.mirror_dir, cls.mount_point])
+        cls.fs_process = subprocess.Popen(['python', cryptbox_path, cls.mirror_dir, cls.mount_point, cls.config_file])
 
         # janky give it time to mount
         time.sleep(1)

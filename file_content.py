@@ -55,34 +55,50 @@ class EncryptedContent(CryptboxContent):
         return self.cipherblock["mimetype"]
 
 
-    def decrypt(self, **kwargs):
-        # this will throw an error if no password or public key is found
+    def decrypt(self, **credentials):
+        """
+        try to decrypt in order, using:
+            1. per-file password
+            2. rsa key
+            3. default password
+
+        all of these should be in the credentials object, but putting in default values of None for testing purposes
+        errors if none of the above are in the credentials object
+        """
         ciphertext, plaintext = self.extract_ciphertext(), None
 
         password = None
-        if kwargs['password'] is not None:
-            password = kwargs['password'])
-        elif kwargs['rsa_key_pair'] is not None:
-            password = self.extract_password(*(kwargs['rsa_key_pair']))
+        if credentials.get('password', None) is not None:
+            password = credentials['password']
+        elif credentials.get('rsa_key_pair', None) is not None:
+            password = self.extract_password(*(credentials['rsa_key_pair']))
         
         if password is None:
-            password = kwargs['default_password'].encode('utf-8')
+            password = credentials['default_password']
+
+        password = password.encode('utf-8')
 
         plaintext = aes.decrypt(ciphertext, password)        
         return UnencryptedContent(plaintext)
 
 class UnencryptedContent(CryptboxContent):
 
-    def encrypt(self, **kwargs):
+    def encrypt(self, **credentials):
         """
         returns an encrypted file!
         keys is a list of public keys to encrypt with
-        """
-        password = kwargs['password']
-        if password is None:
-            password = kwargs['default_password']
+        try to encrypt in order, using:
+            1. per-file password
+            2. default password
 
-        keys = kwargs.get('public_keys', [])
+        errors if no password or default password is provided
+        """
+        password = credentials['password']
+        if password is None:
+            password = credentials['default_password']
+        password = password.encode('utf-8')
+
+        keys = credentials.get('public_keys', [])
 
         plaintext = self.value()
         ciphertext = aes.encrypt(plaintext, password)

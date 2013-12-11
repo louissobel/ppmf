@@ -12,15 +12,18 @@ from encryption import aes
 from encryption import rsa
 import mimetypes
 
+DEFAULT_MIMETYPE = 'application/octet-stream'
 
 class CryptboxContent(object):
 
     def __init__(self, value, filename=None):
         self.file = StringIO(value)
         if filename is not None:
-            self.mimetype = mimetypes.guess_type(filename)[0]
+            self.mimetype = guess_type(filename)[0]
+            if self.mimetype is None:
+                self.mimetype = DEFAULT_MIMETYPE
         else:
-            self.mimetype = 'application/octet-stream'
+            self.mimetype = DEFAULT_MIMETYPE
 
     def value(self):
         return self.file.getvalue()

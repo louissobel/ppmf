@@ -9,6 +9,7 @@ import html_wrapper
 from encryption import aes
 from mimetypes import guess_type
 
+DEFAULT_MIMETYPE = 'application/octet-stream'
 
 class CryptboxContent(object):
 
@@ -16,6 +17,10 @@ class CryptboxContent(object):
         self.file = StringIO(value)
         if filename is not None:
             self.mimetype = guess_type(filename)[0]
+            if self.mimetype is None:
+                self.mimetype = DEFAULT_MIMETYPE
+        else:
+            self.mimetype = DEFAULT_MIMETYPE
 
     def value(self):
         return self.file.getvalue()
@@ -47,7 +52,6 @@ class UnencryptedContent(CryptboxContent):
         """
         returns an encrypted file!
         """
-        print "password is ", password
         plaintext = self.value()
         ciphertext = aes.encrypt(plaintext, password)
         formatted_content = html_wrapper.wrap(ciphertext, self.mimetype)

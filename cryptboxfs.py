@@ -31,7 +31,7 @@ class CryptboxFS(fuse.Operations):
         self.loglock = threading.Lock()
 
         credentials = file_structures.CredentialConfigManager(root, config_pathname)
-        self.file_manager = file_structures.DecryptedFileManager(credentials)
+        self.file_manager = file_structures.DecryptedFileManager(root, credentials)
 
     def __call__(self, *args, **kwargs):
         uid, gid, pid = fuse.fuse_get_context()
@@ -303,11 +303,11 @@ def main(root, mountpoint, config_file):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage: %s <root> <mountpoint>' % sys.argv[0])
+        print('usage: %s <root> <mountpoint> <config file>' % sys.argv[0])
         sys.exit(1)
 
     try:
-        if sys.argv[3] == '-v':
+        if sys.argv[4] == '-v':
             VERBOSE = True
     except IndexError:
         # fine

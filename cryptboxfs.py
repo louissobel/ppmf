@@ -63,14 +63,6 @@ class CryptboxFS(fuse.Operations):
         real_path = os.path.join(self.root, *components)
         return real_path, encrypted_context
 
-    def _relative_path(self, path):
-        """
-        takes a path that is absolute,
-        and returns it relative to the mount_dir
-        basically strips the leading /
-        """
-        return path[1:]
-
     def access(self, path, mode):
         real_path, encrypted_context = self._real_path_and_context(path)
         # first check for existence

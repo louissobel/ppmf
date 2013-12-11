@@ -7,6 +7,7 @@ import threading
 import mimetypes
 
 from open_decrypted_file import OpenDecryptedFile
+from decrypted_file_handle import DecryptedFileHandle
 
 class DecryptedFileManager(object):
     """
@@ -14,42 +15,29 @@ class DecryptedFileManager(object):
     """
 
     def __init__(self, get_password):
-        self.open_files_by_inode = {}
-        self.registry_lock = threading.Lock()
+        self.open_files_by_path = {}
+        self.file_handles = {}
+
+        self.open_close_lock = threading.Lock()
 
         self.get_password = get_password
 
-    def _inode_for_fd(self, fd):
+        self.fdcounter = 0
+
+    def get_handle(self, fd):
         """
-        given fd, returns Inode it points to
+        get the handle for the given fd
         """
-        return os.fstat(fd).st_ino
+        return self.file_handles.get(fd)
 
-    def _register(self, open_file):
-        inode = self._inode_for_fd(open_file.fd)
-
-        with self.registry_lock:
-            if inode in self.open_files_by_inode:
-                raise ValueError("Duplicate Inode!")
-
-            self.open_files_by_inode[inode] = open_file
-
-    def _deregister(self, open_file):
-        inode = self._inode_for_fd(open_file.fd)
-
-        with self.registry_lock:
-            if not inode in self.open_files_by_inode:
-                raise ValueError('No such file!')
-
-            del self.open_files_by_inode[inode]
-
-    def get_file(self, fd):
+    def get_decrypted_file(self, fd):
         """
-        looks up the inode then the file
-        returns None if cannot find it
+        gets decrypted file for fd
         """
-        inode = self._inode_for_fd(fd)
-        return self.open_files_by_inode.get(inode)
+        handle = self.get_handle(fd)
+        if handle is None:
+            return None
+        return handle.decrypted_file
 
     def open(self, path, **kwargs):
         """
@@ -58,42 +46,73 @@ class DecryptedFileManager(object):
         """
         password = self.get_password("opening %s" % path)
 
-        readable = kwargs.get('read', False)
-        writable = kwargs.get('write', False)
+        with self.open_close_lock:
 
-        # open a temp file
-        mimetype = mimetypes.guess_type(path)
-        temp_extension = ''
-        if mimetype[0] is not None:
-            temp_extension = mimetypes.guess_extension(mimetype[0])
-        temp_fd, temp_path = tempfile.mkstemp(temp_extension)
-        open_file = OpenDecryptedFile(temp_path, path,
-            fd=temp_fd,
-            password=password,
-            readable=readable,
-            writable=writable,
-        )
-        self._register(open_file)
+            readable = kwargs.get('read', False)
+            writable = kwargs.get('write', False)
 
-        if kwargs.get('create', False):
-            # we need to create the encrypted empty version
-            open_file.encrypt()
-        else:
-            # load decrypted version
-            open_file.decrypt()
+            decrypted_file = self._get_or_open_decrypted_file(path, password, kwargs.get('create', False))
+            fd = self._next_fd()
 
-        return open_file
+            file_handle = DecryptedFileHandle(decrypted_file, fd,
+                readable=readable,
+                writable=writable,
+            )
 
-    def close(self, open_file):
+            decrypted_file.reference_count += 1
+            self.file_handles[fd] = file_handle
+
+            return file_handle
+
+    def close(self, file_handle):
         """
-        closes the given file
-        :(
+        closes the given file handle
         """
-        if not open_file.open:
+        if not file_handle.open:
             raise ValueError('File is already closed!')
 
-        # take it out of circulation first
-        self._deregister(open_file)
-        open_file.open = False
+        with self.open_close_lock:
+            try:
+                del self.file_handles[file_handle.fd]
+            except KeyError:
+                raise ValueError("No such fd!")
 
-        open_file.flush()
+            file_handle.open = False
+
+            decrypted_file = file_handle.decrypted_file
+            decrypted_file.reference_count -= 1
+
+            if decrypted_file.reference_count == 0:
+                assert decrypted_file.source_path in self.open_files_by_path
+                del self.open_files_by_path[decrypted_file.source_path]
+                decrypted_file.close()
+
+    def _get_or_open_decrypted_file(self, path, password, create=False):
+        """
+        gets or creates and sets the open file
+        assumes outside synchronization
+        """
+        open_file = self.open_files_by_path.get(path)
+        if not open_file:
+            # make it
+            mimetype = mimetypes.guess_type(path)
+            temp_extension = ''
+            if mimetype[0] is not None:
+                temp_extension = mimetypes.guess_extension(mimetype[0])
+
+            temp_fd, temp_path = tempfile.mkstemp(suffix=temp_extension)
+            open_file = OpenDecryptedFile(temp_path, path, temp_fd,
+                password=password,
+                create=create,
+            )
+            self.open_files_by_path[path] = open_file
+        return open_file
+
+    def _next_fd(self):
+        """
+        assumes outside syncrhonzation
+
+        TODO make this not so dumb?
+        """
+        self.fdcounter += 1
+        return self.fdcounter

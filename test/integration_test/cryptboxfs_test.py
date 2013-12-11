@@ -303,3 +303,23 @@ class TestCryptbox(unittest.TestCase):
         with self.assertRaises(OSError) as cm:
             os.open(path, os.O_RDONLY)
         self.assertEqual(cm.exception.errno, errno.ENOENT)
+
+    def test_flush(self):
+        """
+        flush!
+        """
+        filename = 'test_flush.txt'
+        path = os.path.join(self.mount_point, filename)
+        encrypted_path = os.path.join(self.mount_point, cryptboxfs.ENCRYPTION_PREFIX, filename)
+
+        message = 'hi hi hi hello there'
+        fh = open(path, 'w')
+        fh.write(message)
+        fh.flush()
+        os.fsync(fh.fileno())
+
+        # read encrypted... after decryption it should match message
+        cipher_text = self.read_file(encrypted_path)
+        decrypted = self.get_decrypted(cipher_text)
+
+        self.assertEqual(decrypted, message)

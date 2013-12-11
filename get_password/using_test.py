@@ -8,7 +8,7 @@ def get_password(forwhat):
     return os.environ.get('TEST_CRYPTBOXFS_PASSWORD')
 
 def get_public_key():
-	return os.environ.get('TEST_CRYPTBOXFS_PUBKEY')
+    return os.environ.get('TEST_CRYPTBOXFS_PUBKEY')
 
 def get_private_key():
-	return os.environ.get('TEST_CRYPTBOXFS_PRIVKEY')
+    return os.environ.get('TEST_CRYPTBOXFS_PRIVKEY')

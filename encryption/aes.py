@@ -89,7 +89,6 @@ def decrypt(ciphertext, password):
     """
     decrypts that shit!
     """
-    print password
     return AESWrapper().decrypt(ciphertext, password)
 
 if __name__ == "__main__":

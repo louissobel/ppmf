@@ -15,10 +15,14 @@ class DecryptedFileManager(object):
     manages access and existence of cryptbox files
     """
 
-    def __init__(self, root, credentials):
+    def __init__(self, root, encrypted_root, credentials):
 
         # the root dir of where the files actually live
         self.root = root
+
+        # the VFS prefix for the encrypted root
+        # probably something like /foo/bar/mountpoint/__enc__
+        self.encrypted_root = encrypted_root
 
         self.open_files_by_path = {}
         self.file_handles = {}
@@ -105,9 +109,12 @@ class DecryptedFileManager(object):
             if mimetype[0] is not None:
                 temp_extension = mimetypes.guess_extension(mimetype[0])
 
+            vfs_path = self._encrypted_path(path)
+
             temp_fd, temp_path = tempfile.mkstemp(suffix=temp_extension)
             open_file = OpenDecryptedFile(temp_path, path, temp_fd,
                 credentials=file_creds,
+                vfs_path=vfs_path,
                 create=create,
             )
             self.open_files_by_path[path] = open_file
@@ -124,3 +131,9 @@ class DecryptedFileManager(object):
 
     def _relative_path(self, path):
         return os.path.relpath(path, self.root)
+
+    def _encrypted_path(self, path):
+        return os.path.join(
+            self.encrypted_root,
+            self._relative_path(path),
+        )

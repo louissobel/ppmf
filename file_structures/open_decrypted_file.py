@@ -20,12 +20,15 @@ class OpenDecryptedFile(object):
         source_path is the path where the encrypted file lives
 
         kwargs is to set some stuff
+        - credentials = credentials!
+        - vfs_path = vfs path for triggering (virtual file system)
         """
         self.path = path
         self.fd = fd
         self.source_path = source_path
 
         self.credentials = kwargs['credentials']
+        self.vfs_path = kwargs.get('vfs_path')
 
         self.dirty = False
         self.reference_count = 0
@@ -87,8 +90,18 @@ class OpenDecryptedFile(object):
         """
         if self.dirty:
             self.encrypt()
+            self.trigger_fsevent()
             self.dirty = False
+
         return 0
+
+    def trigger_fsevent(self):
+        """
+        sends a touch through VFS to the __enc__ path to
+        alert anyone listening (like dropbox) that this file has changed
+        """
+        if self.vfs_path:
+            os.utime(self.vfs_path, None)
 
     def _load_ciphertext(self, **kwargs):
         kwargs['kind'] = 'cipher'

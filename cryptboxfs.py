@@ -194,6 +194,26 @@ class CryptboxFS(fuse.Operations):
                 raise fuse.FuseOSError(errno.EBADF)
             # TODO handle OSError
 
+    def fsync(self, path, datasync, file_info):
+        return self.flush(path, file_info)
+
+    def flush(self, path, file_info):
+        real_path, encrypted_context = self._real_path_and_context(path)
+
+        fd = file_info.fh
+
+        if encrypted_context:
+            return os.fsync(fd)
+
+        with self.rwlock:
+            # TODO lock file registry?
+            decrypted_file = self.file_manager.get_file(fd)
+            if decrypted_file is None:
+                raise fuse.FuseOSError(errno.EBADF)
+
+            # TODO handle OSError
+            return decrypted_file.flush()
+
     def truncate(self, path, length, file_info=None):
         """
         file_info is none if this is a `truncate`

@@ -87,6 +87,17 @@ class OpenDecryptedFile(object):
             os.lseek(fd, offset, os.SEEK_SET)
             return os.write(fd, data)
 
+    def flush(self):
+        """
+        dump encrypted if dirty and set clean
+
+        ASSUMING SOMEONE ELSE IN SYNCHRONIZING ACCESS...
+        """
+        if self.dirty:
+            self.encrypt()
+            self.dirty = False
+        return 0
+
     def truncate(self, length):
         """
         truncate

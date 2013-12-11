@@ -96,6 +96,4 @@ class DecryptedFileManager(object):
         self._deregister(open_file)
         open_file.open = False
 
-        # then re-encrypt? is that my job??
-        if open_file.dirty:
-            open_file.encrypt()
+        open_file.flush()

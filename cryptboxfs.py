@@ -31,7 +31,7 @@ class CryptboxFS(fuse.Operations):
         self.loglock = threading.Lock()
 
         credentials = file_structures.CredentialConfigManager(root, config_pathname)
-        self.file_manager = file_structures.DecryptedFileManager(credentials)
+        self.file_manager = file_structures.DecryptedFileManager(root, credentials)
 
     def __call__(self, *args, **kwargs):
         uid, gid, pid = fuse.fuse_get_context()
@@ -62,6 +62,14 @@ class CryptboxFS(fuse.Operations):
 
         real_path = os.path.join(self.root, *components)
         return real_path, encrypted_context
+
+    def _relative_path(self, path):
+        """
+        takes a path that is absolute,
+        and returns it relative to the mount_dir
+        basically strips the leading /
+        """
+        return path[1:]
 
     def access(self, path, mode):
         real_path, encrypted_context = self._real_path_and_context(path)
@@ -303,11 +311,11 @@ def main(root, mountpoint, config_file):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage: %s <root> <mountpoint>' % sys.argv[0])
+        print('usage: %s <root> <mountpoint> <config file>' % sys.argv[0])
         sys.exit(1)
 
     try:
-        if sys.argv[3] == '-v':
+        if sys.argv[4] == '-v':
             VERBOSE = True
     except IndexError:
         # fine

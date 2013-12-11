@@ -20,7 +20,6 @@ class CredentialConfigManager(object):
     }
     """
     def __init__(self, root, config_pathname):
-        self.root = root
         self.pathname = config_pathname
         self.refresh_config_file()
 
@@ -44,6 +43,14 @@ class CredentialConfigManager(object):
             config_contents = f.read()
         self.parse_config_file(config_contents)
 
+    def file_creds_for(self, path):
+        return {
+            "rsa_key_pair" : (self.get_public_key(), self.get_private_key()),
+            "default_password" : self.get_default_password(),
+            "password" : self.get_password_for(path),
+            "public_keys" : self.get_public_keys_for(path),
+        }
+
     def get_public_key(self):
         return self.public_key
 
@@ -58,7 +65,6 @@ class CredentialConfigManager(object):
         returns password for a given pathname if there is one
         but public/private keys should always be tried first
         """
-        cryptbox_pathname = self._get_cryptbox_filename(cryptbox_pathname)
         file_config = self.files.get(cryptbox_pathname, {})
         return file_config.get("password", None)
 
@@ -66,12 +72,5 @@ class CredentialConfigManager(object):
         """
         return list of public keys for sharing, the identities authorized to the file
         """
-        cryptbox_pathname = self._get_cryptbox_filename(cryptbox_pathname)
         file_config = self.files.get(cryptbox_pathname, {})
         return file_config.get("public_keys", [])
-
-    def _get_cryptbox_filename(self, cryptbox_pathname):
-        """
-        takes off root path
-        """
-        return cryptbox_pathname.split(self.root)[1]

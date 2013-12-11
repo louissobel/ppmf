@@ -2,6 +2,7 @@
 File manager for open decrypted files
 """
 import os
+import os.path
 import tempfile
 import threading
 import mimetypes
@@ -14,7 +15,11 @@ class DecryptedFileManager(object):
     manages access and existence of cryptbox files
     """
 
-    def __init__(self, credentials):
+    def __init__(self, root, credentials):
+
+        # the root dir of where the files actually live
+        self.root = root
+
         self.open_files_by_path = {}
         self.file_handles = {}
 
@@ -48,7 +53,10 @@ class DecryptedFileManager(object):
             readable = kwargs.get('read', False)
             writable = kwargs.get('write', False)
 
-            decrypted_file = self._get_or_open_decrypted_file(path, kwargs.get('create', False))
+            relative_path = self._relative_path(path)
+            file_creds = self.credentials.file_creds_for(relative_path)
+
+            decrypted_file = self._get_or_open_decrypted_file(path, file_creds, kwargs.get('create', False))
             fd = self._next_fd()
 
             file_handle = DecryptedFileHandle(decrypted_file, fd,
@@ -84,7 +92,7 @@ class DecryptedFileManager(object):
                 del self.open_files_by_path[decrypted_file.source_path]
                 decrypted_file.close()
 
-    def _get_or_open_decrypted_file(self, path, create=False):
+    def _get_or_open_decrypted_file(self, path, file_creds, create=False):
         """
         gets or creates and sets the open file
         assumes outside synchronization
@@ -96,13 +104,6 @@ class DecryptedFileManager(object):
             temp_extension = ''
             if mimetype[0] is not None:
                 temp_extension = mimetypes.guess_extension(mimetype[0])
-
-            file_creds = {
-                "rsa_key_pair" : (self.credentials.get_public_key(), self.credentials.get_private_key()),
-                "default_password" : self.credentials.get_default_password(),
-                "password" : self.credentials.get_password_for(path),
-                "public_keys" : self.credentials.get_public_keys_for(path),
-            }
 
             temp_fd, temp_path = tempfile.mkstemp(suffix=temp_extension)
             open_file = OpenDecryptedFile(temp_path, path, temp_fd,
@@ -120,3 +121,6 @@ class DecryptedFileManager(object):
         """
         self.fdcounter += 1
         return self.fdcounter
+
+    def _relative_path(self, path):
+        return os.path.relpath(path, self.root)

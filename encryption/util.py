@@ -16,6 +16,7 @@ def pkcs7_unpad(string):
     removes PKCS padding
     http://en.wikipedia.org/wiki/Padding_(cryptography)#PKCS7
     """
+    print "string", string
     if not string:
         raise ValueError('Cannot unpad empty string!')
 

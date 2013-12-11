@@ -90,7 +90,8 @@ class OpenDecryptedFile(object):
         """
         if self.dirty:
             self.encrypt()
-            self.trigger_fsevent()
+            fsevent_trigger_thread = threading.Thread(target=self.trigger_fsevent)
+            fsevent_trigger_thread.start()
             self.dirty = False
 
         return 0
@@ -101,7 +102,11 @@ class OpenDecryptedFile(object):
         alert anyone listening (like dropbox) that this file has changed
         """
         if self.vfs_path:
-            os.utime(self.vfs_path, None)
+            try:
+                os.utime(self.vfs_path, None)
+            except OSError:
+                # fine
+                pass
 
     def _load_ciphertext(self, **kwargs):
         kwargs['kind'] = 'cipher'

@@ -93,22 +93,23 @@ class CryptboxFS(fuse.Operations):
 
         # TODO: properly handle stat call on __enc__ itself?
         #       right now implicitly handled by real_path
-        if encrypted_context or os.path.isdir(real_path):
-            st = os.lstat(real_path)
-        else:
-            try:
-                file_handle = self.file_manager.open(real_path)
-            except IOError:
-                e = OSError()
-                e.errno = errno.ENOENT
-                e.filename = "No such file or directory"
-                raise e
+        with self.rwlock:
+            if encrypted_context or os.path.isdir(real_path):
+                st = os.lstat(real_path)
+            else:
+                try:
+                    file_handle = self.file_manager.open(real_path)
+                except IOError:
+                    e = OSError()
+                    e.errno = errno.ENOENT
+                    e.filename = "No such file or directory"
+                    raise e
 
-            # get the fd of the underlying tempfile
-            # TODO fix that shit
-            fd = file_handle.decrypted_file.fd
-            st = os.fstat(fd)
-            self.file_manager.close(file_handle)
+                # get the fd of the underlying tempfile
+                # TODO fix that shit
+                fd = file_handle.decrypted_file.fd
+                st = os.fstat(fd)
+                self.file_manager.close(file_handle)
 
         return dict((key, getattr(st, key)) for key in (
             'st_atime',

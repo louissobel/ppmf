@@ -25,17 +25,23 @@ class CryptboxFS(fuse.Operations):
     let's make config_pathname be absolute for now
     """
 
-    def __init__(self, root, config_pathname):
+    def __init__(self, root, mountpoint, config_pathname):
         self.root = root
         self.rwlock = threading.Lock()
         self.loglock = threading.Lock()
 
         credentials = file_structures.CredentialConfigManager(root, config_pathname)
-        self.file_manager = file_structures.DecryptedFileManager(credentials)
+        encrypted_root = os.path.join(mountpoint, ENCRYPTION_PREFIX)
+        self.file_manager = file_structures.DecryptedFileManager(
+            root,
+            encrypted_root,
+            credentials,
+        )
 
     def __call__(self, *args, **kwargs):
         uid, gid, pid = fuse.fuse_get_context()
         try:
+            self._log("starting ", args[0])
             res = fuse.Operations.__call__(self, *args, **kwargs)
         except Exception as e:
             self._log(pid, args, kwargs, e)
@@ -299,15 +305,15 @@ class CryptboxFS(fuse.Operations):
         return contents
 
 def main(root, mountpoint, config_file):
-    return fuse.FUSE(CryptboxFS(root, config_file), mountpoint, raw_fi=True, foreground=True)
+    return fuse.FUSE(CryptboxFS(root, mountpoint, config_file), mountpoint, raw_fi=True, foreground=True)
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print('usage: %s <root> <mountpoint>' % sys.argv[0])
+        print('usage: %s <root> <mountpoint> <config file>' % sys.argv[0])
         sys.exit(1)
 
     try:
-        if sys.argv[3] == '-v':
+        if sys.argv[4] == '-v':
             VERBOSE = True
     except IndexError:
         # fine

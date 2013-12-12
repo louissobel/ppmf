@@ -7,7 +7,6 @@ from StringIO import StringIO
 
 import html_wrapper
 from base64 import b64encode, b64decode
-from get_password import get_keys
 from encryption import aes
 from encryption import rsa
 from mimetypes import guess_type

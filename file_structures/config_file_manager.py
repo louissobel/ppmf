@@ -1,4 +1,5 @@
 import json
+import getpass
 import os
 from encryption import rsa
 
@@ -22,8 +23,7 @@ class CredentialConfigManager(object):
 
     .config should be instantiated with personal_keys, public/private key, default_password, empty files
     """
-    def __init__(self, root, config_pathname=None):
-        self.root = root
+    def __init__(self, root, config_pathname):
         self.pathname = config_pathname
         self.refresh_config_file()
 
@@ -43,6 +43,14 @@ class CredentialConfigManager(object):
         config_json = json.dumps(self.config)
         with open(self.pathname, 'w') as f:
             f.write(config_json)
+
+    def file_creds_for(self, path):
+        return {
+            "rsa_key_pair" : (self.get_public_key(), self.get_private_key()),
+            "default_password" : self.get_default_password(),
+            "password" : self.get_password_for(path),
+            "public_keys" : self.get_public_keys_for(path),
+        }
 
     def get_public_key(self):
         keys = self.config.get("personal_keys")
@@ -66,33 +74,21 @@ class CredentialConfigManager(object):
         returns password for a given pathname if there is one
         but public/private keys should always be tried first
         """
-        cryptbox_pathname = self._get_cryptbox_filename(cryptbox_pathname)
-        file_config = self.get_files().get(cryptbox_pathname, {})
-        if file_config is None:
-        	# at some point this should prompt user to enter in a password if they want
-        	return None
-        return file_config.get("password")
+        file_config = self.files.get(cryptbox_pathname, {})
+        return file_config.get("password", None)
 
     def get_public_keys_for(self, cryptbox_pathname):
         """
         return list of public keys for sharing, the identities authorized to the file
         """
-        cryptbox_pathname = self._get_cryptbox_filename(cryptbox_pathname)
-        file_config = self.get_files().get(cryptbox_pathname, {})
-        if file_config is None:
-        	return []
+        file_config = self.files.get(cryptbox_pathname, {})
         return file_config.get("public_keys", [])
 
-    def _get_cryptbox_filename(self, cryptbox_pathname):
-        """
-        takes off root path
-        """
-        return cryptbox_pathname.split(self.root)[1]
-
-    def set_password_for(self, cryptbox_pathname, password):
-        cryptbox_pathname = self._get_cryptbox_filename(cryptbox_pathname)
+    def set_password_for(self, cryptbox_pathname):
+        password = getpass.getpass()
         if cryptbox_pathname in self.config.files:
             file_config = self.files[cryptbox_pathname]
+            file_config["password"] = password
         else:
             file_config = {
                 "password" : password,
@@ -101,9 +97,9 @@ class CredentialConfigManager(object):
         self.write_config_file()
 
     def set_public_keys_for(self, cryptbox_pathname, public_keys):
-        cryptbox_pathname = self._get_cryptbox_filename(cryptbox_pathname)
         if cryptbox_pathname in self.config.files:
             file_config = self.files[cryptbox_pathname]
+            file_config["public_keys"] = public_keys
         else:
             file_config = {
                 "public_keys" : public_keys,
@@ -119,6 +115,4 @@ class CredentialConfigManager(object):
     def set_default_password(self, password):
         self.config["default_password"] = password
         self.write_config_file()
-
-if __name__ == '__main__':
-	import sys
+   

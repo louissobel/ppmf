@@ -19,7 +19,6 @@ class RSAWrapper(object):
         decrypted = rsa_key.decrypt(b64decode(ciphertext)) 
         return decrypted
 
-
     def get_fingerprint(self, key):
         """
         returns a fingerprint of a key so we know which AES key we should decrypt

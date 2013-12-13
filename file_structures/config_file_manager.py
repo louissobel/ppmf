@@ -3,6 +3,11 @@ import getpass
 import os
 from encryption import rsa
 
+NONENCRYPTED_FILES = [
+    '.xdg-volume-info', 
+    'autorun.inf',
+]
+
 class CredentialConfigManager(object):
     """
     parses .config file in root for info about files
@@ -23,25 +28,23 @@ class CredentialConfigManager(object):
 
     .config should be instantiated with personal_keys, public/private key, default_password, empty files
     """
-    def __init__(self, root, config_pathname):
-        self.pathname = config_pathname
-        self.refresh_config_file()
+    def __init__(self, root, config_pathname, rsa_key_pathname):
+        self.config_pathname = config_pathname
+        self.rsa_key_pathname = rsa_key_pathname
+        self.read_config_and_key_file()
 
-    def parse_config_file(self, contents):
-        """
-        reads in above json object. also can be used to refresh
-        todo: when to refresh? ask louis, but for now just do it before every get call
-        """
-        self.config = json.loads(contents)
-
-    def refresh_config_file(self):
-        with open(self.pathname, 'r') as f:
+    def read_config_and_key_file(self):
+        with open(self.config_pathname, 'r') as f:
             config_contents = f.read()
-        self.parse_config_file(config_contents)
+
+        with open(self.rsa_key_pathname, 'r') as f:
+            key_contents = f.read()
+
+        self.config, self.keys = json.loads(config_contents), json.loads(key_contents)
 
     def write_config_file(self):
         config_json = json.dumps(self.config)
-        with open(self.pathname, 'w') as f:
+        with open(self.config_pathname, 'w') as f:
             f.write(config_json)
 
     def file_creds_for(self, path):
@@ -61,14 +64,10 @@ class CredentialConfigManager(object):
         self.set_password_for(relative_path)
 
     def get_public_key(self):
-        keys = self.config.get("personal_keys")
-        if keys is not None:
-            return keys["public"].replace('\\n', '\n')
+        return self.keys.get("public").replace('\\n', '\n')
 
     def get_private_key(self):
-        keys = self.config.get("personal_keys")
-        if keys is not None:
-            return keys["private"].replace('\\n', '\n')
+        return self.keys.get("private").replace('\\n', '\n')
 
     def get_default_password(self):
         return self.config["default_password"]
@@ -114,9 +113,15 @@ class CredentialConfigManager(object):
     def set_password_for(self, cryptbox_pathname):
         #prompt in terminal for password
         #i don't know why this is asking for a password twice...
-        password = getpass.getpass()
+        print cryptbox_pathname
+        if cryptbox_pathname not in NONENCRYPTED_FILES:
+            password = getpass.getpass()
+        else:
+            password = "DEFAULT"
+
         if password == "DEFAULT":
             password = self.get_default_password()
+            
         passwords = self.encrypt_passwords(password, self.get_public_keys_for(cryptbox_pathname))
 
         if cryptbox_pathname in self.config["files"]:
@@ -149,9 +154,10 @@ class CredentialConfigManager(object):
         return passwords
 
     def set_new_rsa_keypair(self):
-        keys = self["personal_keys"]
-        keys["private"], keys["public"] = rsa.generate_keypair()
-        self.write_config_file()
+        self.keys = {}
+        self.keys["private"], self.keys["public"] = rsa.generate_keypair()
+        with open(self.rsa_key_pathname, 'w') as f:
+            f.write(json.dumps(self.keys))
 
     def set_default_password(self, password):
         self.config["default_password"] = password

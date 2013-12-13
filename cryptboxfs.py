@@ -25,12 +25,12 @@ class CryptboxFS(fuse.Operations):
     let's make config_pathname be absolute for now
     """
 
-    def __init__(self, root, mountpoint, config_pathname):
+    def __init__(self, root, mountpoint, config_pathname, rsa_key_pathname):
         self.root = root
         self.rwlock = threading.Lock()
         self.loglock = threading.Lock()
 
-        credentials = file_structures.CredentialConfigManager(root, config_pathname)
+        credentials = file_structures.CredentialConfigManager(root, config_pathname, rsa_key_pathname)
         encrypted_root = os.path.join(mountpoint, ENCRYPTION_PREFIX)
         self.file_manager = file_structures.DecryptedFileManager(
             root,
@@ -304,8 +304,8 @@ class CryptboxFS(fuse.Operations):
 
         return contents
 
-def main(root, mountpoint, config_file):
-    return fuse.FUSE(CryptboxFS(root, mountpoint, config_file), mountpoint, raw_fi=True, foreground=True)
+def main(root, mountpoint, config_file, rsa_key_pathname):
+    return fuse.FUSE(CryptboxFS(root, mountpoint, config_file, rsa_key_pathname), mountpoint, raw_fi=True, foreground=True)
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
@@ -313,10 +313,10 @@ if __name__ == '__main__':
         sys.exit(1)
 
     try:
-        if sys.argv[4] == '-v':
+        if sys.argv[5] == '-v':
             VERBOSE = True
     except IndexError:
         # fine
         pass
 
-    fuse = main(sys.argv[1], sys.argv[2], sys.argv[3])
+    fuse = main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])

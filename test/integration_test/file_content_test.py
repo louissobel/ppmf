@@ -15,4 +15,4 @@ def test_roundtrip_with_key():
     public_key, private_key = new_key.publickey().exportKey("PEM"), new_key.exportKey("PEM") 
     unc = UnencryptedContent(message)
 
-    assert message == unc.encrypt(password=password, public_keys=[public_key]).decrypt(rsa_key_pair=(public_key, private_key)).value()
+    assert message == unc.encrypt(password=password, public_keys=[public_key]).decrypt(password=password).value()

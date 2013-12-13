@@ -313,7 +313,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     try:
-        if sys.argv[5] == '-v':
+        if '-v' in sys.argv[5:]:
             VERBOSE = True
     except IndexError:
         # fine

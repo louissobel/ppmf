@@ -59,7 +59,7 @@ class DecryptedFileManager(object):
 
             relative_path = self._relative_path(path)
 
-            if kwargs.get('create', False) or relative_path not in self.credentials.get_files(): 
+            if relative_path not in self.credentials.get_files(): 
                 self.credentials.create_file_creds_for(relative_path)
             file_creds = self.credentials.file_creds_for(relative_path)
 

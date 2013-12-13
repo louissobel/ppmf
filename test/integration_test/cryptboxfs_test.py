@@ -16,7 +16,7 @@ from nose.tools import nottest
 
 import cryptboxfs
 import file_content
-from file_structures import CredentialConfigManager
+from config_file_manager import CredentialConfigManager
 
 class TestCryptbox(unittest.TestCase):
 

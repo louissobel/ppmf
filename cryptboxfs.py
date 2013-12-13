@@ -11,6 +11,7 @@ import threading
 import fuse
 
 import file_structures
+import config_file_manager
 import open_flag_parser
 
 VERBOSE = False
@@ -30,7 +31,7 @@ class CryptboxFS(fuse.Operations):
         self.rwlock = threading.Lock()
         self.loglock = threading.Lock()
 
-        credentials = file_structures.CredentialConfigManager(root, config_pathname, rsa_key_pathname)
+        credentials = config_file_manager.CredentialConfigManager(root, config_pathname, rsa_key_pathname)
         encrypted_root = os.path.join(mountpoint, ENCRYPTION_PREFIX)
         self.file_manager = file_structures.DecryptedFileManager(
             root,

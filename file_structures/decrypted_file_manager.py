@@ -58,6 +58,9 @@ class DecryptedFileManager(object):
             writable = kwargs.get('write', False)
 
             relative_path = self._relative_path(path)
+
+            if kwargs.get('create', False) or relative_path not in self.credentials.get_files(): 
+                self.credentials.create_file_creds_for(relative_path)
             file_creds = self.credentials.file_creds_for(relative_path)
 
             decrypted_file = self._get_or_open_decrypted_file(path, file_creds, kwargs.get('create', False))

@@ -46,21 +46,29 @@ class CredentialConfigManager(object):
 
     def file_creds_for(self, path):
         return {
-            "rsa_key_pair" : (self.get_public_key(), self.get_private_key()),
             "default_password" : self.get_default_password(),
             "password" : self.get_password_for(path),
+            "passwords" : self.get_passwords_for(path),
             "public_keys" : self.get_public_keys_for(path),
         }
+
+    def create_file_creds_for(self, relative_path):
+        #overwrites a file if already there
+        self.config["files"][relative_path] = {
+            "public_keys" : [self.get_public_key()],
+        }
+        # ehhh this also writes to config file
+        self.set_password_for(relative_path)
 
     def get_public_key(self):
         keys = self.config.get("personal_keys")
         if keys is not None:
-            return keys["public"]
+            return keys["public"].replace('\\n', '\n')
 
     def get_private_key(self):
         keys = self.config.get("personal_keys")
         if keys is not None:
-            return keys["private"]
+            return keys["private"].replace('\\n', '\n')
 
     def get_default_password(self):
         return self.config["default_password"]
@@ -71,41 +79,74 @@ class CredentialConfigManager(object):
 
     def get_password_for(self, cryptbox_pathname):
         """
-        returns password for a given pathname if there is one
-        but public/private keys should always be tried first
+        returns decrypted password for cryptbox_pathname file if own public key was found
+        else returns None
         """
-        file_config = self.files.get(cryptbox_pathname, {})
-        return file_config.get("password", None)
+        file_config = self.config.get('files').get(cryptbox_pathname, {})
+        if "passwords" not in file_config:
+            return None
+
+        fingerprint = rsa.get_fingerprint(self.get_public_key())
+        encrypted_password = file_config["passwords"].get(fingerprint)
+        if encrypted_password is None:
+            return None
+
+        #ascii errors were thrown without encoding with utf8?
+        return rsa.decrypt(encrypted_password, self.get_private_key()).encode('utf-8')
+
+    def get_passwords_for(self, cryptbox_pathname):
+        """
+        returns encrypted passwords, based on the public_keys for cryptbox_pathname
+        """
+        file_config = self.get_files().get(cryptbox_pathname, {})
+        if "passwords" not in file_config: 
+            return None
+        return file_config.get("passwords")
 
     def get_public_keys_for(self, cryptbox_pathname):
         """
         return list of public keys for sharing, the identities authorized to the file
+        includes own public key
         """
-        file_config = self.files.get(cryptbox_pathname, {})
+        file_config = self.config.get('files').get(cryptbox_pathname, {})
         return file_config.get("public_keys", [])
 
     def set_password_for(self, cryptbox_pathname):
+        #prompt in terminal for password
+        #i don't know why this is asking for a password twice...
         password = getpass.getpass()
-        if cryptbox_pathname in self.config.files:
-            file_config = self.files[cryptbox_pathname]
-            file_config["password"] = password
+        if password == "DEFAULT":
+            password = self.get_default_password()
+        passwords = self.encrypt_passwords(password, self.get_public_keys_for(cryptbox_pathname))
+
+        if cryptbox_pathname in self.config["files"]:
+            file_config = self.config.get('files')[cryptbox_pathname]
         else:
-            file_config = {
-                "password" : password,
-            }
-        self.get_files()[cryptbox_pathname] = file_config
+            file_config = {}
+
+        file_config["passwords"] = passwords
+        self.config["files"][cryptbox_pathname] = file_config
         self.write_config_file()
 
     def set_public_keys_for(self, cryptbox_pathname, public_keys):
-        if cryptbox_pathname in self.config.files:
-            file_config = self.files[cryptbox_pathname]
-            file_config["public_keys"] = public_keys
-        else:
-            file_config = {
-                "public_keys" : public_keys,
-            }
-        self["files"][cryptbox_pathname] = file_config
+        public_key = self.get_public_key()
+        if public_key not in public_keys:
+            public_keys.append(public_key)
+
+        password = self.get_password_for(cryptbox_pathname)
+        passwords = self.encrypt_passwords(password, public_keys)
+
+        self.config["files"][cryptbox_pathname] = {
+            "public_keys" : public_keys,
+            "passwords" : passwords,
+        }
         self.write_config_file()
+
+    def encrypt_passwords(self, password, public_keys):
+        passwords = {}
+        for public_key in public_keys:
+            passwords[rsa.get_fingerprint(public_key)] = rsa.encrypt(password, public_key)
+        return passwords
 
     def set_new_rsa_keypair(self):
         keys = self["personal_keys"]

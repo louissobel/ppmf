@@ -2,18 +2,14 @@
 basic checks on an html_wrapper roundtrip
 """
 import html_wrapper
+from file_content import EncryptedContent
 
 def test_roundtrip():
     wrapper = html_wrapper.HTMLWrapper()
-    ciphertext = "sdfkjl 3209oij \x03 sdlfkj \x34 dlfkj FOOBAR wekhj lalal pooop"
-    assert ciphertext == wrapper.unwrap(wrapper.wrap(ciphertext))
-
-def test_roundtrip_html_entities():
-    wrapper = html_wrapper.HTMLWrapper()
-    ciphertext = "</pre> foobar < \" & <> = <b> <pre> </bloop>"
-    assert ciphertext == wrapper.unwrap(wrapper.wrap(ciphertext))
+    content = EncryptedContent("sdfkjl 3209oij \x03 sdlfkj \x34 dlfkj FOOBAR wekhj lalal pooop")
+    assert content.b64ciphertext == wrapper.unwrap(wrapper.wrap(content)).b64ciphertext
 
 def test_long_string():
     wrapper = html_wrapper.HTMLWrapper()
-    ciphertext = 'a' * 1024
-    assert ciphertext == wrapper.unwrap(wrapper.wrap(ciphertext))
+    content = EncryptedContent('a' * 1024)
+    assert content.b64ciphertext == wrapper.unwrap(wrapper.wrap(content)).b64ciphertext

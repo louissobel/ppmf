@@ -29,6 +29,7 @@ class EncryptedContent(CryptboxContent):
         plaintext_blob = aes.decrypt(ciphertext, password)
         return UnencryptedContent.from_blob(plaintext_blob)
 
+
 class UnencryptedContent(CryptboxContent):
 
     @classmethod

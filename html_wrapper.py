@@ -59,6 +59,7 @@ class HTMLWrapper(object):
         if not match:
             raise ValueError("html_string %r does not match" % html_string)
         else:
-            b64ciphertext = match.group(1)
+            split_b64ciphertext = match.group(1)
+            b64ciphertext = ''.join(split_b64ciphertext.split('\n'))
             encrypted = file_content.EncryptedContent(b64ciphertext)
             return encrypted

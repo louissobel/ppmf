@@ -10,47 +10,55 @@ Needs to handle HTML entities in the cipher and plain text
 Maybe base64 encode the ciphertext?
 """
 import re
-import fileinput
-from base64 import b64encode, b64decode
 import json
 import mimetypes
 
 import jinja2
 
-# TODO: this is a lil jank
-HTML_TEMPLATE = jinja2.Template(open('cryptbox_template.html', 'r').read())
+import file_content
+import encryption.util
 
-def wrap(cipherblock):
+
+class HTMLWrapper(object):
     """
-    returns html string wrapping the ciphertext
-
-    JSON object: {
-        ciphertext: ciphertext,
-        mimetype: type of file,
-        keys: {
-            key fingerprint : password encrypted with the public key
-        }
-    }
+    wraps and unwraps html
     """
-    return HTML_TEMPLATE.render(ciphertext=b64encode(json.dumps(cipherblock)))
+    TEMPLATE_DIR = 'templates'
 
-def unwrap(html_string):
-    """
-    gets the cipher text back out of this
-    """
-    match = re.search(r'\<pre id="ciphertext"\>(.*?)\</pre\>', html_string, re.DOTALL)
-    if not match:
-        raise ValueError("html_string %r does not match" % html_string)
-    else:
-        return json.loads(b64decode(match.group(1)))
+    def __init__(self, linelength=80):
+        """
+        optional linelength argument, controls width of ciphertext in html
+        """
+        self.linelength = linelength
 
-if __name__ == "__main__":
-    import sys
+        self.template_env = jinja2.Environment(loader=jinja2.PackageLoader(__name__, self.TEMPLATE_DIR))
+        self.template_env.filters['linewrap'] = self.split_into_lines
 
-    source = ''.join([ line for line in fileinput.input(sys.argv[2:][0]) ])
-    if sys.argv[1] == 'wrap':
-        print wrap(source)
-    elif sys.argv[1] == 'unwrap':
-        print unwrap(source)
-    else:
-        raise ValueError
+    def wrap(self, encrypted_content):
+        """
+        returns html string wrapping the ciphertext
+        """
+        # Type check for sanity.
+        required_klass = file_content.EncryptedContent
+        if not isinstance(encrypted_content, required_klass):
+            raise TypeError('Argument to wrap must be instance of %s' % str(required_klass))
+
+        return self.template_env.get_template('cryptbox_template.html').render(ciphertext=encrypted_content.b64ciphertext)
+
+    def split_into_lines(self, text):
+        if self.linelength is None:
+            return text
+        else:
+            return '\n'.join(text[i:i+self.linelength] for i in range(0, len(text), self.linelength))
+
+    def unwrap(self, html_string):
+        """
+        gets the cipher text back out of this
+        """
+        match = re.search(r'\<pre id="ciphertext"\>(.*?)\</pre\>', html_string, re.DOTALL)
+        if not match:
+            raise ValueError("html_string %r does not match" % html_string)
+        else:
+            b64ciphertext = match.group(1)
+            encrypted = file_content.EncryptedContent(b64ciphertext)
+            return encrypted

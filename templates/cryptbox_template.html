@@ -1,0 +1,40 @@
+<html>
+    <head>
+    <title>Encrypted File</title>
+
+    <script>
+    {% include 'html_enc_controller.js' %}
+    </script>
+
+    </head>
+
+    <body onload="init()">
+
+        <form id="decryptForm" style="visibility: hidden;">
+            <input id="password" type="password">
+            <input type="submit">
+        </form>
+
+        <div id="errorMessage"/>
+
+        <div>
+            <a id="fileLink" style="visibility: hidden;">file</a>
+        </div>
+
+        <div id="progressMeter">
+          0%
+        </div>
+
+        <div>
+            <pre id="ciphertext">{{ ciphertext|linewrap }}</pre>
+        </div>
+
+    </body>
+
+    <script type="text/javascript">
+        function init() {
+          new HtmlEncController();
+        }
+    </script>
+
+</html>

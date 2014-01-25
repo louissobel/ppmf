@@ -14,4 +14,4 @@ gluejs  --include ./js \
 	--main js/html_enc_controller.js \
 	--nocache \
 	| \
-cat > templates/html_enc_controller.js
+cat > templates/main.js

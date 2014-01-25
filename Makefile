@@ -1,4 +1,4 @@
-all: templates/html_enc_controller.js
+all: templates/main.js
 
-templates/html_enc_controller.js: js/*
+templates/main.js: js/*
 	./buildjs.sh

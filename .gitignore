@@ -3,3 +3,9 @@
 
 # virtual env
 env
+
+# crap
+.gitignore
+
+# built file
+templates/main.js

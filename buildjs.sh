@@ -5,7 +5,7 @@ rm -rf ~/.gluejs-cache
 
 echo "Linting"
 
-jshint js/
+jshint -c js/.jshintrc js/
 
 echo "Compiling"
 

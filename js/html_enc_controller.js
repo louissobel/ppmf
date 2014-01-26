@@ -2,7 +2,7 @@
 
 var Page = require("./page")
   , CryptoJS = require("./cryptojs")
-  , decrypt = require("./decrypt")
+  , aes = require("./aes")
   , b64ToBlob = require("./b64_to_blob")
   ;
 
@@ -18,7 +18,7 @@ var HtmlEncController = module.exports = function () {
 
 HtmlEncController.prototype.submitDecrypt = function (password) {
   var b64ciphertext = this.page.getB64CipherText();
-  decrypt(b64ciphertext, password, this.decryptProgressCallback.bind(this));
+  aes.decrypt(b64ciphertext, password, this.decryptProgressCallback.bind(this));
 };
 
 HtmlEncController.prototype.decryptProgressCallback = function (error, percent, done, result) {

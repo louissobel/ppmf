@@ -1,4 +1,6 @@
-var CryptoJS = require('./cryptojs');
+"use strict";
+
+var CryptoJS = require("./cryptojs");
 
 var WordArrayChunker = module.exports = function (wordArray, wordsPerChunk) {
   this.wordArray = wordArray;

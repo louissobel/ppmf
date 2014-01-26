@@ -1,8 +1,9 @@
+"use strict";
 
-var Page = require('./page')
-  , CryptoJS = require('./cryptojs')
-  , decrypt = require('./decrypt')
-  , b64ToBlob = require('./b64_to_blob')
+var Page = require("./page")
+  , CryptoJS = require("./cryptojs")
+  , decrypt = require("./decrypt")
+  , b64ToBlob = require("./b64_to_blob")
   ;
 
 var HtmlEncController = module.exports = function () {
@@ -39,13 +40,13 @@ HtmlEncController.prototype.decryptProgressCallback = function (error, percent, 
     }
 
     try {
-      decryptedObj = JSON.parse(binaryResult);
+      decryptedObject = JSON.parse(binaryResult);
     } catch (err) {
       return this.badPassword(2);
     }
 
     try {
-      blob = b64ToBlob(decryptedObj.b64plaintext, decryptedObj.mimetype);
+      blob = b64ToBlob(decryptedObject.b64plaintext, decryptedObject.mimetype);
     } catch (err) {
       return this.badPassword(3);
     }
@@ -61,5 +62,7 @@ HtmlEncController.prototype.decryptProgressCallback = function (error, percent, 
 };
 
 HtmlEncController.prototype.badPassword = function (a) {
+  /* jshint ignore:start */
   alert('WRONG PASSWORD' + a);
+  /* jshint ignore:end */
 };

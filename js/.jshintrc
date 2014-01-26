@@ -1,3 +1,15 @@
 {
-	"laxcomma" : true
+	"globals" : {"module" : false, "require" : false},
+	"browser" : true,
+	"laxcomma" : true,
+	"camelcase" : true,
+	"curly" : true,
+	"immed" : true,
+	"newcap" : true,
+	"quotmark" : "double",
+	"undef" : true,
+	"strict" : true,
+	"trailing" : true,
+	"indent" : 2,
+	"globalstrict" : true
 }

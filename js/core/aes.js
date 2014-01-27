@@ -11,7 +11,28 @@ aes.decrypt = function (b64ciphertext, password, callback) {
     , derivedParams = _getKeyAndIv(password, cipherParams.salt)
     , decryptor = CryptoJS.algo.AES.createDecryptor(derivedParams.key, {iv: derivedParams.iv})
     ;
-  _runCipher(decryptor, cipherParams.ciphertext, callback);
+
+  _runCipher({
+    cipher: decryptor
+  , input: cipherParams.ciphertext
+  }, callback);
+};
+
+aes.encrypt = function (b64plaintext, password, callback) {
+  var derivedParams = _getKeyAndIv(password) // Will generate random salt.
+    , encryptor = CryptoJS.algo.AES.createEncryptor(derivedParams.key, {iv: derivedParams.iv})
+    , plainWords = CryptoJS.enc.Base64.parse(b64plaintext)
+    ;
+
+  // Need to initialize it with the salt.
+  // 0x53616c74, 0x65645f5f are OpenSSL magic salt numbers (SALTED__)
+  var output = CryptoJS.lib.WordArray.create([0x53616c74, 0x65645f5f]).concat(derivedParams.salt);
+
+  _runCipher({
+    cipher: encryptor
+  , input: plainWords
+  , output: output
+  }, callback);
 };
 
 var _getKeyAndIv = function (password, salt) {
@@ -24,9 +45,12 @@ var _getKeyAndIv = function (password, salt) {
   return derivedParams;
 };
 
-var _runCipher = function (cipher, input, callback) {
-  var output = CryptoJS.lib.WordArray.create()
-    , wordsPerChunk = 1024 // Four kilobytes in a chunk.
+var _runCipher = function (options, callback) {
+  options = options || {};
+  var output = options.output || CryptoJS.lib.WordArray.create()
+    , wordsPerChunk = options.wordsPerChunk || 1024 // Four kilobytes in a chunk.
+    , cipher = options.cipher
+    , input = options.input
     , wordChunker = new WordArrayChunker(input, wordsPerChunk)
     ;
 

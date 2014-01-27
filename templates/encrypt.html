@@ -10,15 +10,16 @@
 
 <body onload="init()">
 
-  <div>
-    <input id="foo" type="text"/>
+  <form id="encryptForm">
+    <input id="file" type="file"/><br/>
+
+    <input id="password" type="password">
+    <input type="submit">
   </div>
 
-  <div>
-    <button id="bar">Encrypt</button>
-  </div>
+  <a id="done-link">Ready</a>
 
-  <div id="decrypt-template" >
+  <div id="decrypt-template" style="display:none;">
 {{ decryptTemplate|escape }}
   </div>
   

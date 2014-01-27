@@ -3,10 +3,10 @@
 var Page = require("./page")
   , CryptoJS = require("../core/cryptojs")
   , aes = require("../core/aes")
-  , b64ToBlob = require("../core/b64_to_blob")
+  , base64 = require("../core/base64")
   ;
 
-var HtmlEncController = module.exports = function () {
+var DecryptController = module.exports = function () {
   // Setup page
   this.page = new Page();
 
@@ -16,12 +16,12 @@ var HtmlEncController = module.exports = function () {
 
 };
 
-HtmlEncController.prototype.submitDecrypt = function (password) {
+DecryptController.prototype.submitDecrypt = function (password) {
   var b64ciphertext = this.page.getB64CipherText();
   aes.decrypt(b64ciphertext, password, this.decryptProgressCallback.bind(this));
 };
 
-HtmlEncController.prototype.decryptProgressCallback = function (error, percent, done, result) {
+DecryptController.prototype.decryptProgressCallback = function (error, percent, done, result) {
   if (error) {
     // for now, assume this means password was bad
     this.badPassword(0);
@@ -46,7 +46,7 @@ HtmlEncController.prototype.decryptProgressCallback = function (error, percent, 
     }
 
     try {
-      blob = b64ToBlob(decryptedObject.b64plaintext, decryptedObject.mimetype);
+      blob = base64.b64ToBlob(decryptedObject.b64plaintext, decryptedObject.mimetype);
     } catch (err) {
       return this.badPassword(3);
     }
@@ -61,7 +61,7 @@ HtmlEncController.prototype.decryptProgressCallback = function (error, percent, 
 
 };
 
-HtmlEncController.prototype.badPassword = function (a) {
+DecryptController.prototype.badPassword = function (a) {
   /* jshint ignore:start */
   alert('WRONG PASSWORD' + a);
   /* jshint ignore:end */

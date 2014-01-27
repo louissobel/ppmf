@@ -17,7 +17,28 @@ aes.decrypt = function (b64ciphertext, password, callback) {
     , derivedParams = _getKeyAndIv(password, cipherParams.salt)
     , decryptor = CryptoJS.algo.AES.createDecryptor(derivedParams.key, {iv: derivedParams.iv})
     ;
-  _runCipher(decryptor, cipherParams.ciphertext, callback);
+
+  _runCipher({
+    cipher: decryptor
+  , input: cipherParams.ciphertext
+  }, callback);
+};
+
+aes.encrypt = function (b64plaintext, password, callback) {
+  var derivedParams = _getKeyAndIv(password) // Will generate random salt.
+    , encryptor = CryptoJS.algo.AES.createEncryptor(derivedParams.key, {iv: derivedParams.iv})
+    , plainWords = CryptoJS.enc.Base64.parse(b64plaintext)
+    ;
+
+  // Need to initialize it with the salt.
+  // 0x53616c74, 0x65645f5f are OpenSSL magic salt numbers (SALTED__)
+  var output = CryptoJS.lib.WordArray.create([0x53616c74, 0x65645f5f]).concat(derivedParams.salt);
+
+  _runCipher({
+    cipher: encryptor
+  , input: plainWords
+  , output: output
+  }, callback);
 };
 
 var _getKeyAndIv = function (password, salt) {
@@ -30,9 +51,12 @@ var _getKeyAndIv = function (password, salt) {
   return derivedParams;
 };
 
-var _runCipher = function (cipher, input, callback) {
-  var output = CryptoJS.lib.WordArray.create()
-    , wordsPerChunk = 1024 // Four kilobytes in a chunk.
+var _runCipher = function (options, callback) {
+  options = options || {};
+  var output = options.output || CryptoJS.lib.WordArray.create()
+    , wordsPerChunk = options.wordsPerChunk || 1024 // Four kilobytes in a chunk.
+    , cipher = options.cipher
+    , input = options.input
     , wordChunker = new WordArrayChunker(input, wordsPerChunk)
     ;
 
@@ -68,7 +92,7 @@ var _cipherStep = function (wordChunker, cipher, output, callback) {
 },{"./cryptojs":3,"./word_array_chunker":4}],2:[function(_dereq_,module,exports){
 "use strict";
 
-var b64ToBlob = module.exports = function (b64Data, contentType) {
+module.exports.b64ToBlob = function (b64Data, contentType) {
 
   // http://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
   var sliceSize = 512
@@ -95,6 +119,25 @@ var b64ToBlob = module.exports = function (b64Data, contentType) {
 
   return new Blob(byteArrays, {type: contentType});
 };
+
+module.exports.blobToB64 = function (blob, callback) {
+  // http://jsperf.com/blob-base64-conversion
+
+  // TODO: handle error?
+
+  var reader = new FileReader();
+
+  reader.onload = function() {
+    var dataUrl = reader.result
+      , base64 = dataUrl.split(",")[1]
+      ;
+
+    callback(null, base64);
+  };
+
+  reader.readAsDataURL(blob);
+};
+
 },{}],3:[function(_dereq_,module,exports){
 /*
 CryptoJS v3.1.2
@@ -202,10 +245,10 @@ WordArrayChunker.prototype.percentComplete = function () {
 var Page = _dereq_("./page")
   , CryptoJS = _dereq_("../core/cryptojs")
   , aes = _dereq_("../core/aes")
-  , b64ToBlob = _dereq_("../core/b64_to_blob")
+  , base64 = _dereq_("../core/base64")
   ;
 
-var HtmlEncController = module.exports = function () {
+var DecryptController = module.exports = function () {
   // Setup page
   this.page = new Page();
 
@@ -215,12 +258,12 @@ var HtmlEncController = module.exports = function () {
 
 };
 
-HtmlEncController.prototype.submitDecrypt = function (password) {
+DecryptController.prototype.submitDecrypt = function (password) {
   var b64ciphertext = this.page.getB64CipherText();
   aes.decrypt(b64ciphertext, password, this.decryptProgressCallback.bind(this));
 };
 
-HtmlEncController.prototype.decryptProgressCallback = function (error, percent, done, result) {
+DecryptController.prototype.decryptProgressCallback = function (error, percent, done, result) {
   if (error) {
     // for now, assume this means password was bad
     this.badPassword(0);
@@ -245,7 +288,7 @@ HtmlEncController.prototype.decryptProgressCallback = function (error, percent, 
     }
 
     try {
-      blob = b64ToBlob(decryptedObject.b64plaintext, decryptedObject.mimetype);
+      blob = base64.b64ToBlob(decryptedObject.b64plaintext, decryptedObject.mimetype);
     } catch (err) {
       return this.badPassword(3);
     }
@@ -260,12 +303,12 @@ HtmlEncController.prototype.decryptProgressCallback = function (error, percent, 
 
 };
 
-HtmlEncController.prototype.badPassword = function (a) {
+DecryptController.prototype.badPassword = function (a) {
   /* jshint ignore:start */
   alert('WRONG PASSWORD' + a);
   /* jshint ignore:end */
 };
-},{"../core/aes":1,"../core/b64_to_blob":2,"../core/cryptojs":3,"./page":6}],6:[function(_dereq_,module,exports){
+},{"../core/aes":1,"../core/base64":2,"../core/cryptojs":3,"./page":6}],6:[function(_dereq_,module,exports){
 "use strict";
 
 // The main view for the page

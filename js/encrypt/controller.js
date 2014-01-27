@@ -25,7 +25,7 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
       , jsonifiedString = JSON.stringify(decryptedObj)
       , b64jsonifiedString = btoa(jsonifiedString)
       ;
-    aes.encrypt(b64jsonifiedString, "password", this.encryptProgressCallback.bind(this));
+    aes.encrypt(b64jsonifiedString, document.getElementById("password").value, this.encryptProgressCallback.bind(this));
   }.bind(this));
 
 };
@@ -35,8 +35,9 @@ EncryptController.prototype.encryptProgressCallback = function (err, percent, do
     // create an html blob.
     // TODO this need be refactored
     // TODO so much b64!!
+    // TODO SO MUCH JANK
     var htmlString = document.getElementById("decrypt-template").innerText
-      , wrapped = htmlString.replace("{{ ciphertext }}", result)
+      , wrapped = htmlString.replace("{{ ciphertext }}", result.match(/.{1,128}/g).join("\n"))
       , blob = base64.b64ToBlob(btoa(wrapped), "text/html")
       , blobUrl = URL.createObjectURL(blob)
       ;

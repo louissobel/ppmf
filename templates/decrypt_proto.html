@@ -3,7 +3,7 @@
     <title>Encrypted File</title>
 
     <script>
-    {% include 'main.js' %}
+    {{ controllerJavascript }}
     </script>
 
     </head>
@@ -26,14 +26,15 @@
         </div>
 
         <div>
-            <pre id="ciphertext">{{ ciphertext|linewrap }}</pre>
+            {# Literal here because it is double templated #}
+            <pre id="ciphertext">{{ "{{ ciphertext }}" }}</pre>
         </div>
 
     </body>
 
     <script type="text/javascript">
         function init() {
-          new HtmlEncController();
+          new DecryptController();
         }
     </script>
 

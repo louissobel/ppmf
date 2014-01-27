@@ -32,7 +32,6 @@ class HTMLWrapper(object):
         self.linelength = linelength
 
         self.template_env = jinja2.Environment(loader=jinja2.PackageLoader(__name__, self.TEMPLATE_DIR))
-        self.template_env.filters['linewrap'] = self.split_into_lines
 
     def wrap(self, encrypted_content):
         """
@@ -43,7 +42,7 @@ class HTMLWrapper(object):
         if not isinstance(encrypted_content, required_klass):
             raise TypeError('Argument to wrap must be instance of %s' % str(required_klass))
 
-        return self.template_env.get_template('cryptbox_template.html').render(ciphertext=encrypted_content.b64ciphertext)
+        return self.template_env.get_template('decrypt.html').render(ciphertext=self.split_into_lines(encrypted_content.b64ciphertext))
 
     def split_into_lines(self, text):
         if self.linelength is None:

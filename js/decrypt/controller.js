@@ -1,9 +1,9 @@
 "use strict";
 
 var Page = require("./page")
-  , CryptoJS = require("./cryptojs")
-  , aes = require("./aes")
-  , b64ToBlob = require("./b64_to_blob")
+  , CryptoJS = require("../core/cryptojs")
+  , aes = require("../core/aes")
+  , b64ToBlob = require("../core/b64_to_blob")
   ;
 
 var HtmlEncController = module.exports = function () {

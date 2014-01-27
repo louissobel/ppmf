@@ -1,0 +1,32 @@
+<html>
+
+<head>
+
+  <script>
+{{ controllerJavascript }}
+  </script>
+
+</head>
+
+<body onload="init()">
+
+  <div>
+    <input id="foo" type="text"/>
+  </div>
+
+  <div>
+    <button id="bar">Encrypt</button>
+  </div>
+
+  <div id="decrypt-template" >
+{{ decryptTemplate|escape }}
+  </div>
+  
+  <script type="text/javascript">
+      function init() {
+        new EncryptController();
+      }
+  </script>
+
+</body>
+</html>

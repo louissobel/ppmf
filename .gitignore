@@ -4,8 +4,7 @@
 # virtual env
 env
 
-# crap
-.gitignore
-
-# built file
-templates/main.js
+# built files
+templates/decrypt.js
+build/
+pages/

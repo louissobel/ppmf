@@ -1,0 +1,21 @@
+#!/usr/bin/env python
+
+"""
+Given encrypt page template, decrypt template, javascript controller, and output file,
+builds the main page
+"""
+import sys
+
+import jinja2
+
+template, decrypt_template, javascript, output = sys.argv[1:5]
+
+with open(template) as t:
+    with open(decrypt_template) as dt:
+        with open(javascript) as js:
+            with open(output, 'w') as out:
+                template = jinja2.Template(t.read())
+                out.write(template.render(
+                    controllerJavascript=js.read(),
+                    decryptTemplate = dt.read(),
+                ))

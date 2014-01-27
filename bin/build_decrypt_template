@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+
+"""
+Given decrypt proto-template, javascript controller, and output file,
+builds the final template
+"""
+import sys
+
+import jinja2
+
+proto_template, javascript, output = sys.argv[1:4]
+
+with open(proto_template) as pt:
+    with open(javascript) as js:
+        with open(output, 'w') as out:
+            template = jinja2.Template(pt.read())
+            out.write(template.render(controllerJavascript=js.read()))

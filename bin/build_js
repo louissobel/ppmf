@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+# Calls out to browserify
+# In future, could pipe to minifier as well.
+# Oh! Lints too.
+
+set -e
+
+echo "Linting"
+
+jshint -c js/.jshintrc js/
+
+echo "Compiling $1 $2"
+
+browserify $1 --standalone $2 > $3

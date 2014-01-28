@@ -3,6 +3,7 @@
 var Page = require("./page")
   , base64 = require("../core/base64")
   , aes = require("../core/aes")
+  , HtmlWrapper = require("./html_wrapper")
   ;
 
 var EncryptController = module.exports = function () {
@@ -25,27 +26,21 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
       , jsonifiedString = JSON.stringify(decryptedObj)
       , b64jsonifiedString = btoa(jsonifiedString)
       ;
-    aes.encrypt(b64jsonifiedString, document.getElementById("password").value, this.encryptProgressCallback.bind(this));
+    aes.encrypt(b64jsonifiedString, password, this.encryptProgressCallback.bind(this));
   }.bind(this));
 
 };
 
 EncryptController.prototype.encryptProgressCallback = function (err, percent, done, result) {
   if (done) {
-    // create an html blob.
-    // TODO this need be refactored
-    // TODO so much b64!!
-    // TODO SO MUCH JANK
-    var htmlString = document.getElementById("decrypt-template").innerText
-      , wrapped = htmlString.replace("{{ ciphertext }}", result.match(/.{1,128}/g).join("\n"))
-      , blob = base64.b64ToBlob(btoa(wrapped), "text/html")
-      , blobUrl = URL.createObjectURL(blob)
+    var htmlWrapper = new HtmlWrapper(this.page.getDecryptTemplate())
+      , htmlBlob = htmlWrapper.wrap(result)
+      , blobUrl = URL.createObjectURL(htmlBlob)
       ;
 
-    var e = document.getElementById("done-link");
-    e.href = blobUrl;
+    this.page.setResultUrl(blobUrl);
 
   } else {
-    console.log(percent);
+    this.page.setProgress(percent);
   }
 };

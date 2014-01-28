@@ -2,6 +2,48 @@
 
 <head>
 
+  <style type="text/css">
+
+  body {
+    width:100%;
+    padding:0px;
+  }
+
+  h1 {
+    margin-top:0px;
+  }
+
+  #header {
+    background-color:blue;
+    padding:3px;
+  }
+
+  #container {
+    padding:20px;
+
+    margin:auto;
+
+  }
+
+  .content1 {
+    background-color:red;
+  }
+
+  .content2 {
+    background-color:green;
+  }
+
+  .content3 {
+    background-color:yellow;
+  }
+
+  .content {
+    float:left;
+    width:30%;
+  }
+
+  </style>
+
   <script>
 {{ controllerJavascript }}
   </script>
@@ -10,14 +52,45 @@
 
 <body onload="init()">
 
-  <form id="encryptForm">
-    <input id="file" type="file"/><br/>
-
-    <input id="password" type="password">
-    <input type="submit">
+  <div id="header">
+    <h3>Password Protect My File</h3>
   </div>
 
-  <a id="done-link">Ready</a>
+  <div id="container">
+
+    <div class="content content1">
+      <h1>Password Protect Your File</h1>
+    </div>
+
+    <div class="content content2">
+      <div id="form-box">
+        <form id="encrypt-form">
+          <input id="file-select" type="file"/>
+
+          <p>
+            <label for="password">Password:</label>
+            <input id="password" type="password"/>
+          </p>
+
+          <input type="submit" value="Encrypt"/>
+        </form>
+      </div>
+
+      <div id="error"></div>
+
+      <div id="aux-box">
+        <div id="encrypt-status"></div>
+        <div id="ready-box">
+          <a id="done-link" download="encryptedfile.html">Download</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="content content3">
+      ADS
+    </div>
+
+  </div>
 
   <div id="decrypt-template" style="display:none;">
 {{ decryptTemplate|escape }}

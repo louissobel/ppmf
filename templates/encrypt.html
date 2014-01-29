@@ -2,44 +2,74 @@
 
 <head>
 
+  <!-- Latest compiled and minified CSS -->
+  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+
   <style type="text/css">
 
   body {
-    width:100%;
-    padding:0px;
+    /* min ad 728 + 10 padding */
+    min-width:748;
+
+    background-color:rgb(255, 248, 237);
   }
 
-  h1 {
-    margin-top:0px;
+  .logo {
+    font-family:monospace;
   }
 
-  #header {
-    background-color:blue;
-    padding:3px;
+  .ad-container {
+    padding:10px;
+  }
+  
+  .ad-medium-rectangle {
+    background-color:rgba(0,0,255,.5);
+    width:300px;
+    height:250px;
   }
 
-  #container {
-    padding:20px;
-
-    margin:auto;
-
+  .ad-wide-skyscraper {
+    background-color:rgba(0,0,255,.5);
+    width:160px;
+    height:600px;
   }
 
-  .content1 {
-    background-color:red;
+  .ad-leaderboard {
+    background-color:rgba(0,0,255,.5);
+    width:728px;
+    height:90px;
   }
 
-  .content2 {
-    background-color:green;
+  .footer {
+    text-align:center;
+  }
+  
+  .main-content {
+    background-image:url("../img/gun_metal.png");
   }
 
-  .content3 {
-    background-color:yellow;
+  .about-copy {
+    padding-left:25px;
+    color:rgb(255, 248, 237);
+    font-family:monospace;
   }
 
-  .content {
-    float:left;
-    width:30%;
+  .encrypt-box {
+    min-width:250px;
+    margin-top:25px;
+  }
+
+  .center-text-contents {
+    text-align:center;
+  }
+
+  /* disable progress bar animations!! */
+  .progress-bar {
+      -webkit-transition: none;
+      -moz-transition: none;
+      -ms-transition: none;
+      -o-transition: none;
+      transition: none;
   }
 
   </style>
@@ -52,42 +82,95 @@
 
 <body onload="init()">
 
-  <div id="header">
-    <h3>Password Protect My File</h3>
-  </div>
+  <div style="padding:15px;">
 
-  <div id="container">
-
-    <div class="content content1">
-      <h1>Password Protect Your File</h1>
+    <div class="row">
+      <div class="col-xs-12">
+        <h3 class="logo">PasswordProtectMyFile.com</h3>
+      </div>
     </div>
 
-    <div class="content content2">
-      <div id="form-box">
-        <form id="encrypt-form">
-          <input id="file-select" type="file"/>
-
+    <div class="row main-content">
+      <div class="col-lg-4 col-md-4 col-sm-4 col-xs-6">
+        <div class="about-copy">
+          <h2>Easily encrypt any file</h2>
           <p>
-            <label for="password">Password:</label>
-            <input id="password" type="password"/>
+            Add a password to your file using the box to the right.
+            The file never leaves your computer! The result is a web
+            page that you can send to friends and share online, that contains
+            your password-protected file as well as everything necessary to 
+            decrypt it. All you have to do is enter your password again!
           </p>
-
-          <input type="submit" value="Encrypt"/>
-        </form>
-      </div>
-
-      <div id="error"></div>
-
-      <div id="aux-box">
-        <div id="encrypt-status"></div>
-        <div id="ready-box">
-          <a id="done-link" download="encryptedfile.html">Download</a>
+          
         </div>
       </div>
+
+      <div class="col-lg-4 col-md-4 col-sm-5 col-xs-6">
+        <div class="encrypt-box well" class="well">
+          <div>
+            <form id="encrypt-form">
+
+              <!-- hidden file select -->
+              <input id="file-select" type="file" style="display:none;" />
+
+              <p>
+                <label for="file-select-button">Pick a file:</label>
+                <span style="display:inline-block;">
+                  <input class="btn btn-info btn-sm" id="file-select-button" type="button" value="browse" />
+                  <input id="file-select-display" type="text" placeholder="None Chosen" />
+                </span>
+              </p>
+
+              <p>
+                <label for="password">Pick a password:</label>
+                <input id="password" type="password"/>
+              </p>
+
+              <button type="submit" class="btn btn-warning btn-block">Encrypt</button>
+
+            </form>
+          </div>
+
+
+          <div id="aux-box">
+            <div class="progress" style="display:none;">
+              <div id="encrypt-progress-bar" class="progress-bar" role="progressbar" style="width: 0%;">
+              </div>
+            </div>
+
+            <div id="error-box" class="alert alert-danger" style="display:none;"></div>
+            <div id="ready-box" class="alert alert-success" style="display:none;">
+              <h5>Your password-protected file is ready!</h5>
+              <div class="center-text-contents">
+                <a id="done-link" download>
+                  <button class="btn btn-info">Download</button>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4 col-md-4 col-sm-3 col-xs-12">
+        <div class="ad-container">
+          <div class="ad-medium-rectangle visible-md visible-lg">
+          </div>
+          <div class="ad-wide-skyscraper visible-sm">
+          </div>
+          <div class="ad-leaderboard visible-xs">
+          </div>
+        </div>
+      </div>
+
     </div>
 
-    <div class="content content3">
-      ADS
+    <!-- footer -->
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="footer">
+          <h6>Copyright Louis Sobel</h6>
+        </div>
+      </div>
     </div>
 
   </div>

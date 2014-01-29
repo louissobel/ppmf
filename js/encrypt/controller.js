@@ -6,16 +6,33 @@ var Page = require("./page")
   , HtmlWrapper = require("./html_wrapper")
   ;
 
+var SHOW_PROGRESS_BAR_SIZE_THRESHOLD = 1024;
+
 var EncryptController = module.exports = function () {
   this.page = new Page();
   this.page.submitCallback = this.submitEncrypt.bind(this);
 };
 
 EncryptController.prototype.submitEncrypt = function (password, file) {
-  // file is a file Object?
+  if (password === "") {
+    this.page.showError("You have to pick a password!");
+    return;
+  }
 
-  // handle no file
-  // handle no password
+  if (!file) {
+    this.page.showError("Select a file!");
+    return;
+  }
+
+  if (file.size > SHOW_PROGRESS_BAR_SIZE_THRESHOLD) {
+    this.page.setProgress(0);
+    this.page.showProgressBar();
+  }
+
+  // make sure any old error is hidden
+  this.page.hideError();
+  // make sure any old result is hidden
+  this.page.hideReady();
 
   // turn the file into a base64 string
   base64.blobToB64(file, function (err, result) {
@@ -32,13 +49,16 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
 };
 
 EncryptController.prototype.encryptProgressCallback = function (err, percent, done, result) {
-  if (done) {
+  if (err) {
+    this.page.showError(err + "");
+  } else if (done) {
     var htmlWrapper = new HtmlWrapper(this.page.getDecryptTemplate())
       , htmlBlob = htmlWrapper.wrap(result)
       , blobUrl = URL.createObjectURL(htmlBlob)
       ;
 
-    this.page.setResultUrl(blobUrl);
+    this.page.hideProgressBar();
+    this.page.showReady(blobUrl);
 
   } else {
     this.page.setProgress(percent);

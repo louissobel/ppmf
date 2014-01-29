@@ -75,7 +75,7 @@
   </style>
 
   <script>
-{{ controllerJavascript }}
+{{ include_file('build/encrypt_controller.js') }}
   </script>
 
 </head>
@@ -176,7 +176,7 @@
   </div>
 
   <div id="decrypt-template" style="display:none;">
-{{ decryptTemplate|escape }}
+{{ include_file('templates/decrypt.html')|escape }}
   </div>
   
   <script type="text/javascript">

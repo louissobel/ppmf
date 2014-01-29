@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+
+"""
+runs a file through jinja template with
+`include_file` defined
+"""
+import os
+import sys
+
+import jinja2
+
+loader = jinja2.FileSystemLoader(os.getcwd())
+env = jinja2.Environment(loader=loader)
+
+def include_file(name):
+    return loader.get_source(env, name)[0]
+
+env.globals['include_file'] = include_file
+
+if __name__ == '__main__':
+    res = env.get_template(sys.argv[1]).render()
+    with open(sys.argv[2], 'w') as f:
+        f.write(res)

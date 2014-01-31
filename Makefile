@@ -1,6 +1,3 @@
-all: webapp demo
-
-demo: pages/demo.html
 
 js_core_deps = js/core/*
 decrypt_js_deps = $(js_core_deps) js/decrypt/*
@@ -10,6 +7,10 @@ css_core_deps = css/common.less css/bootstrap.css
 
 demo_file = img/demo.jpg
 demo_password = password
+
+all: webapp demo
+
+demo: pages/demo.html
 
 webapp: pages/encrypt.html
 

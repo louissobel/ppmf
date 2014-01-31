@@ -1,0 +1,41 @@
+@import (inline) "bootstrap.css";
+
+/* disable progress bar animations!! */
+.progress-bar {
+    -webkit-transition: none;
+    -moz-transition: none;
+    -ms-transition: none;
+    -o-transition: none;
+    transition: none;
+}
+
+.logo {
+  font-family:monospace;
+}
+
+.main-content {
+  background-image:data-uri("../img/gun_metal.png");
+}
+
+
+@background-color: rgb(255, 248, 237);
+body {
+  background-color:@background-color;
+}
+
+.form-box {
+  min-width:250px;
+  margin-top:25px;
+}
+
+.centered-button-group {
+  text-align:center;
+
+  a {
+    margin:10px;
+  }
+}
+
+.footer {
+  text-align:center;
+}

@@ -6,6 +6,9 @@ runs a file through jinja template with
 """
 import os
 import sys
+import mimetypes
+mimetypes.init()
+import base64
 
 import jinja2
 
@@ -15,7 +18,18 @@ env = jinja2.Environment(loader=loader)
 def include_file(name):
     return loader.get_source(env, name)[0]
 
+def data_uri(filepath):
+    mimetype, _ = mimetypes.guess_type(filepath)
+    if mimetype is None:
+        mimetype = 'application/octet-stream'
+
+    with open(filepath, 'rb') as f:
+        data = base64.b64encode(f.read())
+
+    return '"data:%s;base64,%s"' % (mimetype, data)
+
 env.globals['include_file'] = include_file
+env.globals['data_uri'] = data_uri
 
 if __name__ == '__main__':
     res = env.get_template(sys.argv[1]).render()

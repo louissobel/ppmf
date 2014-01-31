@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# deploys
+
+ADDRESS=174.129.237.203
+LOCATION=/app/pages
+IDENTITY_FILE=~/.ssh/ec2/sobel.pem
+
+echo "copying contents of pages to $ADDRESS..."
+
+scp -i $IDENTITY_FILE -r pages ubuntu@$ADDRESS:$LOCATION

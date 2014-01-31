@@ -2,7 +2,7 @@
 
 /* wraps bootstrap progress bar */
 
-var throttle = require("../core/throttle");
+var throttle = require("./utils").throttle;
 
 var ProgressBar = module.exports = function (div) {
   // div is the dom element

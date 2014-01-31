@@ -1,10 +1,13 @@
 "use strict";
 
+module.exports.inherits = function (Constructor, SuperConstructor) {
+  Constructor.prototype = new SuperConstructor();
+  Constructor.prototype.constructor = Constructor;
+};
+
 // Taken from underscore
 // http://underscorejs.org/docs/underscore.html
-
-
-module.exports = function(func, wait, options) {
+module.exports.throttle = function(func, wait, options) {
   var context, args, result;
   var timeout = null;
   var previous = 0;

@@ -2,6 +2,10 @@
     <head>
     <title>Encrypted File</title>
 
+    <style type="text/css">
+    {{ include_file('build/decrypt.css') }}
+    </style>
+
     <script>
     {{ include_file('build/decrypt_controller.js') }}
     </script>
@@ -10,25 +14,77 @@
 
     <body onload="init()">
 
-        <form id="decryptForm" style="visibility: hidden;">
-            <input id="password" type="password">
-            <input type="submit">
-        </form>
+      <div style="padding:15px;">
 
-        <div id="errorMessage"/>
-
-        <div>
-            <a id="fileLink" style="visibility: hidden;">file</a>
+        <!-- header -->
+        <div class="row">
+          <div class="col-xs-12">
+            <h3 class="logo">PasswordProtectMyFile.com</h3>
+          </div>
         </div>
 
-        <div id="progressMeter">
-          0%
+        <div class="row main-content">
+
+          <div class="col-xs-4 col-xs-offset-4" style="z-index:1">
+            <div class="form-box well">
+              <div id="loader">
+                  <img src={{ data_uri('img/loader.gif') }}/>
+              </div>
+              <form id="action-form" style="display: none;">
+                  <p>
+                    <label for="password">Enter Password:</label>
+                    <input id="password" type="password">
+                  </p>
+                  <button type="submit" class="btn btn-warning btn-block">Decrypt</button>
+              </form>
+
+              <div id="aux-box">
+                <div class="progress" style="display:none;">
+                  <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;">
+                  </div>
+                </div>
+
+                <div id="error-box" class="alert alert-danger" style="display: none;"></div>
+
+                <div id="ready-box" class="alert alert-success" style="display: none;">
+                  <h5>Your file is decrypted!</h5>
+
+                  <div class="centered-button-group">
+                    <a id="file-link" download>
+                      <button class="btn btn-info">Download</button>
+                    </a>
+
+                    <a id="view-link">
+                      <button class="btn btn-info">View</button>
+                    </a>
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+          <div class="ciphertext-block-wrapper">
+            <div class="ciphertext-block">
+                {# Literal here because it is double templated #}
+                <div id="ciphertext">{{ "{{ ciphertext }}" }}</div>
+            </div>
+          </div>
+
         </div>
 
-        <div>
-            {# Literal here because it is double templated #}
-            <pre id="ciphertext">{{ "{{ ciphertext }}" }}</pre>
+        <!-- footer -->
+        <div class="row">
+          <div class="col-xs-12">
+            <div class="footer">
+              <h6>Copyright Louis Sobel</h6>
+            </div>
+          </div>
         </div>
+
+      </div>
 
     </body>
 

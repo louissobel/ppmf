@@ -1,6 +1,6 @@
 "use strict";
 
-var Page = require("./page")
+var EncryptPage = require("./encrypt_page")
   , base64 = require("../core/base64")
   , aes = require("../core/aes")
   , HtmlWrapper = require("./html_wrapper")
@@ -9,7 +9,7 @@ var Page = require("./page")
 var SHOW_PROGRESS_BAR_SIZE_THRESHOLD = 1024;
 
 var EncryptController = module.exports = function () {
-  this.page = new Page();
+  this.page = (new EncryptPage()).init();
   this.page.submitCallback = this.submitEncrypt.bind(this);
 };
 

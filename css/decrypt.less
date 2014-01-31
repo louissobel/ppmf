@@ -1,0 +1,37 @@
+@import "common";
+
+body {
+  min-width:620px;
+}
+
+#ciphertext {
+  white-space:pre;
+  color:rgb(25, 44, 27);
+}
+.ciphertext-block-wrapper {
+  position:absolute;
+
+  height:100%;
+  max-height:100%;
+
+  width:100%;
+  max-width:100%;
+
+  overflow-y:scroll;
+  overflow-x:hidden;
+
+  font-family:monospace;
+  text-align:center;
+}
+.ciphertext-block {
+  display:inline-block;
+}
+
+.main-content {
+  position:relative;
+}
+
+#loader {
+  text-align:center;
+  padding:5px;
+}

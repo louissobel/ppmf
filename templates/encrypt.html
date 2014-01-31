@@ -2,76 +2,8 @@
 
 <head>
 
-  <!-- Latest compiled and minified CSS -->
-  <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
-
   <style type="text/css">
-
-  body {
-    /* min ad 728 + 10 padding */
-    min-width:748;
-
-    background-color:rgb(255, 248, 237);
-  }
-
-  .logo {
-    font-family:monospace;
-  }
-
-  .ad-container {
-    padding:10px;
-  }
-  
-  .ad-medium-rectangle {
-    background-color:rgba(0,0,255,.5);
-    width:300px;
-    height:250px;
-  }
-
-  .ad-wide-skyscraper {
-    background-color:rgba(0,0,255,.5);
-    width:160px;
-    height:600px;
-  }
-
-  .ad-leaderboard {
-    background-color:rgba(0,0,255,.5);
-    width:728px;
-    height:90px;
-  }
-
-  .footer {
-    text-align:center;
-  }
-  
-  .main-content {
-    background-image:url("../img/gun_metal.png");
-  }
-
-  .about-copy {
-    padding-left:25px;
-    color:rgb(255, 248, 237);
-    font-family:monospace;
-  }
-
-  .encrypt-box {
-    min-width:250px;
-    margin-top:25px;
-  }
-
-  .center-text-contents {
-    text-align:center;
-  }
-
-  /* disable progress bar animations!! */
-  .progress-bar {
-      -webkit-transition: none;
-      -moz-transition: none;
-      -ms-transition: none;
-      -o-transition: none;
-      transition: none;
-  }
-
+{{ include_file('build/encrypt.css') }}
   </style>
 
   <script>
@@ -84,6 +16,7 @@
 
   <div style="padding:15px;">
 
+    <!-- header -->
     <div class="row">
       <div class="col-xs-12">
         <h3 class="logo">PasswordProtectMyFile.com</h3>
@@ -106,9 +39,9 @@
       </div>
 
       <div class="col-lg-4 col-md-4 col-sm-5 col-xs-6">
-        <div class="encrypt-box well" class="well">
+        <div class="form-box well">
           <div>
-            <form id="encrypt-form">
+            <form id="action-form">
 
               <!-- hidden file select -->
               <input id="file-select" type="file" style="display:none;" />
@@ -134,14 +67,14 @@
 
           <div id="aux-box">
             <div class="progress" style="display:none;">
-              <div id="encrypt-progress-bar" class="progress-bar" role="progressbar" style="width: 0%;">
+              <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;">
               </div>
             </div>
 
             <div id="error-box" class="alert alert-danger" style="display:none;"></div>
             <div id="ready-box" class="alert alert-success" style="display:none;">
               <h5>Your password-protected file is ready!</h5>
-              <div class="center-text-contents">
+              <div class="centered-button-group">
                 <a id="done-link" download>
                   <button class="btn btn-info">Download</button>
                 </a>

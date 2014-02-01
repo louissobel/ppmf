@@ -8,7 +8,7 @@ set -e
 
 echo "Linting"
 
-jshint -c js/.jshintrc js/
+jshint -c js/.jshintrc --exclude-path js/.jshintignore js/
 
 echo "Compiling $1 $2"
 

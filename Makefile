@@ -12,16 +12,16 @@ all: webapp demo
 
 demo: pages/demo.html
 
-webapp: pages/encrypt.html
+webapp: pages/encrypt.html pages/decrypt_template.html
 
-pages/encrypt.html: pages/ templates/encrypt.html templates/decrypt.html build/encrypt_controller.js build/encrypt.css
+pages/encrypt.html: pages/ templates/encrypt.html pages/decrypt_template.html build/encrypt_controller.js build/encrypt.css
 	bin/build_jinja templates/encrypt.html pages/encrypt.html
 
-pages/demo.html: pages/ templates/decrypt.html $(demo_file)
-	python html_enc.py encrypt $(demo_file) $(demo_password) > pages/demo.html
+pages/demo.html: pages/ pages/decrypt_template.html $(demo_file)
+	node js/ppmf.js --encrypt $(demo_file) --password $(demo_password) --outfile pages/demo.html --template pages/decrypt_template.html --quiet
 
-templates/decrypt.html: templates/decrypt_proto.html build/decrypt_controller.js build/decrypt.css
-	bin/build_jinja templates/decrypt_proto.html templates/decrypt.html
+pages/decrypt_template.html: templates/decrypt_proto.html build/decrypt_controller.js build/decrypt.css
+	bin/build_jinja templates/decrypt_proto.html pages/decrypt_template.html
 
 build/encrypt_controller.js: build/ $(encrypt_js_deps)
 	bin/build_js js/encrypt/encrypt_controller.js EncryptController build/encrypt_controller.js
@@ -46,7 +46,6 @@ build/:
 clean:
 	rm -rf pages/
 	rm -rf build/
-	rm -f templates/decrypt.html
 
 .PHONY: deploy
 deploy: webapp

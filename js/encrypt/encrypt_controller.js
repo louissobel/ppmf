@@ -39,6 +39,7 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
     var decryptedObj = {
           b64plaintext: btoa(result)
         , mimetype: file.type
+        , filename: file.name
         }
       , jsonifiedString = JSON.stringify(decryptedObj)
       ;

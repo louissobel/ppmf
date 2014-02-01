@@ -47,8 +47,9 @@ DecryptPage.prototype.getB64CipherText = function () {
   return ciphertextHolder.textContent.split("\n").join("");
 };
 
-DecryptPage.prototype.showReady = function (url) {
+DecryptPage.prototype.showReady = function (url, filename) {
   BasePage.prototype.showReady.call(this);
   this.fileLink.href = url;
+  this.fileLink.download = filename;
   this.viewLink.href = url;
 };

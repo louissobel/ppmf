@@ -1,10 +1,9 @@
 "use strict";
 
-module.exports.b64ToBlob = function (b64Data, contentType) {
+module.exports.binaryStringToBlob = function (byteCharacters, contentType) {
 
   // http://stackoverflow.com/questions/16245767/creating-a-blob-from-a-base64-string-in-javascript
   var sliceSize = 512
-    , byteCharacters = atob(b64Data)
     , byteArrays = []
     ;
 
@@ -28,7 +27,7 @@ module.exports.b64ToBlob = function (b64Data, contentType) {
   return new Blob(byteArrays, {type: contentType});
 };
 
-module.exports.blobToB64 = function (blob, callback) {
+module.exports.blobToBinaryString = function (blob, callback) {
   // http://jsperf.com/blob-base64-conversion
 
   // TODO: handle error?
@@ -36,12 +35,8 @@ module.exports.blobToB64 = function (blob, callback) {
   var reader = new FileReader();
 
   reader.onload = function() {
-    var dataUrl = reader.result
-      , base64 = dataUrl.split(",")[1]
-      ;
-
-    callback(null, base64);
+    callback(null, reader.result);
   };
 
-  reader.readAsDataURL(blob);
+  reader.readAsBinaryString(blob);
 };

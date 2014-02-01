@@ -1,7 +1,7 @@
 "use strict";
 
 var EncryptPage = require("./encrypt_page")
-  , base64 = require("../core/base64")
+  , blobs = require("../core/blobs")
   , aes = require("../core/aes")
   , HtmlWrapper = require("./html_wrapper")
   ;
@@ -34,16 +34,15 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
   // make sure any old result is hidden
   this.page.hideReady();
 
-  // turn the file into a base64 string
-  base64.blobToB64(file, function (err, result) {
+  // turn the file into a binary string
+  blobs.blobToBinaryString(file, function (err, result) {
     var decryptedObj = {
-          b64plaintext: result
+          b64plaintext: btoa(result)
         , mimetype: file.type
         }
       , jsonifiedString = JSON.stringify(decryptedObj)
-      , b64jsonifiedString = btoa(jsonifiedString)
       ;
-    aes.encrypt(b64jsonifiedString, password, this.encryptProgressCallback.bind(this));
+    aes.encrypt(jsonifiedString, password, this.encryptProgressCallback.bind(this));
   }.bind(this));
 
 };

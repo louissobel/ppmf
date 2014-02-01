@@ -15,13 +15,14 @@ aes.decrypt = function (b64ciphertext, password, callback) {
   _runCipher({
     cipher: decryptor
   , input: cipherParams.ciphertext
+  , format: CryptoJS.enc.Latin1
   }, callback);
 };
 
-aes.encrypt = function (b64plaintext, password, callback) {
+aes.encrypt = function (plaintext, password, callback) {
   var derivedParams = _getKeyAndIv(password) // Will generate random salt.
     , encryptor = CryptoJS.algo.AES.createEncryptor(derivedParams.key, {iv: derivedParams.iv})
-    , plainWords = CryptoJS.enc.Base64.parse(b64plaintext)
+    , plainWords = CryptoJS.enc.Latin1.parse(plaintext)
     ;
 
   // Need to initialize it with the salt.
@@ -32,6 +33,7 @@ aes.encrypt = function (b64plaintext, password, callback) {
     cipher: encryptor
   , input: plainWords
   , output: output
+  , format: CryptoJS.enc.Base64
   }, callback);
 };
 
@@ -51,13 +53,14 @@ var _runCipher = function (options, callback) {
     , wordsPerChunk = options.wordsPerChunk || 1024 // Four kilobytes in a chunk.
     , cipher = options.cipher
     , input = options.input
+    , format = options.format
     , wordChunker = new WordArrayChunker(input, wordsPerChunk)
     ;
 
-  _cipherStep(wordChunker, cipher, output, callback);
+  _cipherStep(wordChunker, cipher, output, format, callback);
 };
 
-var _cipherStep = function (wordChunker, cipher, output, callback) {
+var _cipherStep = function (wordChunker, cipher, output, format, callback) {
   if (!wordChunker.hasNext()) {
 
     // base case - finalize and finish
@@ -65,7 +68,7 @@ var _cipherStep = function (wordChunker, cipher, output, callback) {
 
     var result;
     try {
-      result = output.toString(CryptoJS.enc.Base64);
+      result = output.toString(format);
     } catch (err) {
       return callback(err);
     }
@@ -78,7 +81,7 @@ var _cipherStep = function (wordChunker, cipher, output, callback) {
     callback(null, wordChunker.percentComplete(), false);
 
     setTimeout(function () {
-      _cipherStep(wordChunker, cipher, output, callback);
+      _cipherStep(wordChunker, cipher, output, format, callback);
     }, 0);
   }
 };

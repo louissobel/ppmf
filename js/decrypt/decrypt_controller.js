@@ -3,7 +3,7 @@
 var DecryptPage = require("./decrypt_page")
   , CryptoJS = require("../core/cryptojs")
   , aes = require("../core/aes")
-  , base64 = require("../core/base64")
+  , blobs = require("../core/blobs")
   ;
 
 var DecryptController = module.exports = function () {
@@ -28,34 +28,27 @@ DecryptController.prototype.submitDecrypt = function (password) {
   aes.decrypt(b64ciphertext, password, this.decryptProgressCallback.bind(this));
 };
 
-DecryptController.prototype.decryptProgressCallback = function (error, percent, done, result) {
+DecryptController.prototype.decryptProgressCallback = function (error, percent, done, binaryResult) {
   if (error) {
     // for now, assume this means password was bad
-    this.badPassword();
+    this.badPassword(error);
   } else if (done) {
 
-    var binaryResult
-      , decryptedObject
+    var decryptedObject
       , blob
       , blobUrl
       ;
 
     try {
-      binaryResult = atob(result);
-    } catch (err) {
-      return this.badPassword();
-    }
-
-    try {
       decryptedObject = JSON.parse(binaryResult);
     } catch (err) {
-      return this.badPassword();
+      return this.badPassword(err);
     }
 
     try {
-      blob = base64.b64ToBlob(decryptedObject.b64plaintext, decryptedObject.mimetype);
+      blob = blobs.binaryStringToBlob(atob(decryptedObject.b64plaintext), decryptedObject.mimetype);
     } catch (err) {
-      return this.badPassword();
+      return this.badPassword(err);
     }
 
     blobUrl = URL.createObjectURL(blob);

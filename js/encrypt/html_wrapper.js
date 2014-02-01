@@ -1,6 +1,6 @@
 "use strict";
 
-var base64 = require("../core/base64");
+var blobs = require("../core/blobs");
 
 var HtmlWrapper = module.exports = function (template) {
   this.LINE_LENGTH = 128;
@@ -11,7 +11,7 @@ HtmlWrapper.prototype.wrap = function (b64ciphertext) {
   // Returns HTML Blob
   var splitCiphertext = this.splitIntoLines(b64ciphertext, this.LINE_LENGTH)
     , wrapped = this.template.replace("{{ ciphertext }}", splitCiphertext)
-    , blob = base64.b64ToBlob(btoa(wrapped), "text/html")
+    , blob = blobs.binaryStringToBlob(wrapped, "text/html")
     ;
   return blob;
 };

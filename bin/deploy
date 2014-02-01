@@ -8,4 +8,4 @@ IDENTITY_FILE=~/.ssh/ec2/sobel.pem
 
 echo "copying contents of pages to $ADDRESS..."
 
-scp -i $IDENTITY_FILE -r pages ubuntu@$ADDRESS:$LOCATION
+scp -i $IDENTITY_FILE -r pages/* ubuntu@$ADDRESS:$LOCATION

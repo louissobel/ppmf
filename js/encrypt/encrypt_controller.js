@@ -53,7 +53,8 @@ EncryptController.prototype.encryptProgressCallback = function (err, percent, do
     this.page.showError(err + "");
   } else if (done) {
     var htmlWrapper = new HtmlWrapper(this.page.getDecryptTemplate())
-      , htmlBlob = htmlWrapper.wrap(result)
+      , htmlString = htmlWrapper.wrap(result)
+      , htmlBlob = blobs.binaryStringToBlob(htmlString, "text/html")
       , blobUrl = URL.createObjectURL(htmlBlob)
       ;
 

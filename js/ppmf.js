@@ -33,7 +33,7 @@ var argv = require("optimist")
   , request = require("request")
   , fs = require("fs")
   , url = require("url")
-  , ProgressBar = require('progress')
+  , ProgressBar = require("progress")
   , ppmf = require("./index")
   ;
 
@@ -88,8 +88,8 @@ if (!quiet) {
   var message = action === "encrypt" ? "Encrypting..." : "Decrypting..."
     , progressBar = new ProgressBar(message + " [:bar] :percent", {
     total: 100
-  , incomplete: '-'
-  , complete: '#'
+  , incomplete: "-"
+  , complete: "#"
   , width: 50
   });
 }

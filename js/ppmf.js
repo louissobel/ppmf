@@ -1,6 +1,7 @@
+#!/usr/bin/env node
 "use strict";
 
-/* global process, Buffer */
+/* global process */
 
 // standalone CLI for node environment
 // (not really standalone)
@@ -8,7 +9,9 @@
 
 var argv = require("optimist")
            .demand("password")
-           .demand("outfile")
+           .describe("outfile", "Write to a file.")
+           .boolean("stdout")
+           .describe("stdout", "Send output to STDOUT. Implies --quiet. Can be used with --outfile")
            .describe("encrypt", "File to encrypt")
            .describe("decrypt", "File to decrypt")
            .boolean("quiet")
@@ -21,20 +24,21 @@ var argv = require("optimist")
              } if (argv.encrypt && argv.decrypt) {
                throw new Error("Cannot both encrypt and decrypt.");
              }
+           }).check(function (argv) {
+             if (!(argv.outfile || argv.stdout)) {
+               throw new Error("Must use either --outfile or --stdout");
+             }
            })
            .argv
   , request = require("request")
-  , mime = require("mime")
-  , path = require("path")
   , fs = require("fs")
   , url = require("url")
-  , aes = require("./core/aes")
-  , HtmlWrapper = require("./encrypt/html_wrapper")
+  , ProgressBar = require('progress')
+  , ppmf = require("./index")
   ;
 
-var CIPHERTEXT_REGEX = /<div id="ciphertext"\>([\s\S]*?)<\/div\>/
-  , TEMPLATE_URL = "http://www.passwordprotectmyfile.com/decrypt_template.html"
-  ;
+
+var TEMPLATE_URL = "http://www.passwordprotectmyfile.com/decrypt_template.html";
 
 var die = function (message) {
   console.error(message);
@@ -42,80 +46,14 @@ var die = function (message) {
 };
 
 var pickAction = function (argv) {
-  if (argv.encrypt && argv.decrypt) {
-    return null;
-  }
-
+  // Validated by optimist.
   if (argv.encrypt) {
     return "encrypt";
   } else if (argv.decrypt) {
     return "decrypt";
   } else {
-    return null;
+    throw new Error("Something is very wrong. Neither encrypt or decrypt specified");
   }
-};
-
-var encrypt = function (templateString, plaintextBuffer, password, progressCallback, callback) {
-  var wrapper = new HtmlWrapper(templateString)
-    , obj = {
-        b64plaintext: plaintextBuffer.toString("base64")
-      , mimetype: mime.lookup(filename)
-      , filename: path.basename(filename)
-      }
-    , objectString = JSON.stringify(obj)
-    ;
-
-  aes.encrypt(objectString, password, function (err, percent, done, result) {
-    if (err) {
-      return callback(err);
-    }
-
-    if (done) {
-      return callback(null, wrapper.wrap(result));
-    } else {
-      return progressCallback(percent);
-    }
-  });
-
-};
-
-var decrypt = function (htmlString, password, progressCallback, callback) {
-  var regexMatch = CIPHERTEXT_REGEX.exec(htmlString);
-  if (!regexMatch) {
-    return callback(new Error("Unable to find cipher text in html string"));
-  }
-
-  var ciphertext = regexMatch[1].split("\n").join("");
-
-  aes.decrypt(ciphertext, password, function (err, percent, done, result) {
-    if (err) {
-      return callback(err);
-    }
-
-    if (done) {
-      // Unpack it
-      var obj
-        , plaintext
-        ;
-
-      try {
-        obj = JSON.parse(result);
-      } catch (error) {
-        return callback(new Error("Invalid Password"));
-      }
-
-      try {
-        plaintext = new Buffer(obj.b64plaintext, "base64");
-      } catch (error) {
-        return callback(new Error("Invalid Password"));
-      }
-
-      return callback(null, plaintext);
-    } else {
-      return progressCallback(percent);
-    }
-  });
-
 };
 
 var getTemplate = function (source, callback) {
@@ -127,7 +65,7 @@ var getTemplate = function (source, callback) {
     });
   } else if (type === "http:" || type === "https:") {
     request(source, function (err, response, body) {
-      if (err && response.statusCode == 200) {
+      if (!err && response.statusCode === 200) {
         return callback(null, body);
       } else {
         return callback(err);
@@ -137,16 +75,29 @@ var getTemplate = function (source, callback) {
 };
 
 var action = pickAction(argv);
-if (action === null) {
-  die("Use either --encrypt or --decrypt");
-}
 
-var filename = argv[action];
+var filename = argv[action]
+  , quiet = argv.stdout ? true : argv.quiet
+  ;
 
 var noop = function () {};
 
-var printProgress = function (p) {
-  console.log(p);
+var progressBar;
+
+if (!quiet) {
+  var message = action === "encrypt" ? "Encrypting..." : "Decrypting..."
+    , progressBar = new ProgressBar(message + " [:bar] :percent", {
+    total: 100
+  , incomplete: '-'
+  , complete: '#'
+  , width: 50
+  });
+}
+
+var updateBar = function (p) {
+  if (Math.ceil(100 * p) > progressBar.curr) {
+    progressBar.tick();
+  }
 };
 
 var doneCallback = function (err, res) {
@@ -154,12 +105,19 @@ var doneCallback = function (err, res) {
     die("Error! " + err.toString());
   }
 
-  fs.writeFile(argv.outfile, res, function (err) {
-    if (err) {
-      die("Unable to write file: " + err.toString);
-    }
-    // DONE!
-  });
+  if (argv.stdout) {
+    console.log(res);
+  }
+
+  if (argv.outfile) {
+    fs.writeFile(argv.outfile, res, function (err) {
+      if (err) {
+        die("Unable to write file: " + err.toString);
+      }
+    });
+  }
+  // DONE!
+
 };
 
 // get the file contents
@@ -168,7 +126,7 @@ fs.readFile(filename, function (err, data) {
     die("Unable to open file " + filename + " to " + action + ".");
   }
 
-  var progressCallback = argv.quiet ? noop : printProgress;
+  var progressCallback = quiet ? noop : updateBar;
 
   if (action === "encrypt") {
     var templateSource = argv.template || TEMPLATE_URL;
@@ -177,11 +135,25 @@ fs.readFile(filename, function (err, data) {
       if (err) {
         die("Unable to load template: " + err.toString());
       }
-      encrypt(templateString, data, argv.password, progressCallback, doneCallback);
+
+      ppmf.encrypt({
+        template: templateString
+      , data: data
+      , password: argv.password
+      , filename: filename
+      , onprogress: progressCallback
+      , oncomplete: doneCallback
+      });
+
     });
 
   } else if (action === "decrypt") {
-    decrypt(data.toString(), argv.password, progressCallback, doneCallback);
+    ppmf.decrypt({
+      htmlString: data.toString()
+    , password: argv.password
+    , onprogress: progressCallback
+    , oncomplete: doneCallback
+    });
   }
 
 });

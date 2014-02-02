@@ -11,5 +11,6 @@
 	"strict" : true,
 	"trailing" : true,
 	"globalstrict" : true,
-	"devel" : true
+	"eqeqeq" : true
+
 }

@@ -106,7 +106,7 @@ var doneCallback = function (err, res) {
   }
 
   if (argv.stdout) {
-    console.log(res);
+    process.stdout.write(res);
   }
 
   if (argv.outfile) {

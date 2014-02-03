@@ -5,10 +5,16 @@ var HtmlWrapper = module.exports = function (template) {
   this.template = template;
 };
 
-HtmlWrapper.prototype.wrap = function (b64ciphertext) {
+HtmlWrapper.prototype.wrap = function (data) {
+  var b64ciphertext = data.ciphertext
+    , filename = data.filename
+    ;
+
   // Returns HTML Blob
   var splitCiphertext = this.splitIntoLines(b64ciphertext, this.LINE_LENGTH)
-    , wrapped = this.template.replace("{{ ciphertext }}", splitCiphertext)
+    , wrapped = this.template
+                  .replace("{{ filename }}", filename)
+                  .replace("{{ ciphertext }}", splitCiphertext)
     ;
   return wrapped;
 };

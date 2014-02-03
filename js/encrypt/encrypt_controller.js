@@ -36,13 +36,12 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
 
   // turn the file into a binary string
   blobs.blobToBinaryString(file, function (err, result) {
-    var decryptedObj = {
-          b64plaintext: btoa(result)
-        , mimetype: file.type
-        , filename: file.name
-        }
-      , jsonifiedString = JSON.stringify(decryptedObj)
-      ;
+    this.decryptedObj = {
+      b64plaintext: btoa(result)
+    , mimetype: file.type
+    , filename: file.name
+    };
+    var jsonifiedString = JSON.stringify(this.decryptedObj);
     aes.encrypt(jsonifiedString, password, this.encryptProgressCallback.bind(this));
   }.bind(this));
 
@@ -53,13 +52,16 @@ EncryptController.prototype.encryptProgressCallback = function (err, percent, do
     this.encryptError(err + "");
   } else if (done) {
     var htmlWrapper = new HtmlWrapper(this.page.getDecryptTemplate())
-      , htmlString = htmlWrapper.wrap(result)
+      , htmlString = htmlWrapper.wrap({
+                       ciphertext: result
+                     , filename: this.decryptedObj.filename
+                     })
       , htmlBlob = blobs.binaryStringToBlob(htmlString, "text/html")
       , blobUrl = URL.createObjectURL(htmlBlob)
       ;
 
     this.page.hideProgressBar();
-    this.page.showReady(blobUrl);
+    this.page.showReady(blobUrl, this.decryptedObj.filename);
     this.page.enableForm();
 
   } else {

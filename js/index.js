@@ -20,6 +20,7 @@ module.exports.encrypt = function (options) {
   var templateString = options.template
     , plaintextBuffer = options.data
     , filename = options.filename
+    , basename = path.basename(filename)
     , password = options.password
     , progressCallback = options.onprogress || noop
     , callback = options.oncomplete || noop
@@ -29,7 +30,7 @@ module.exports.encrypt = function (options) {
     , obj = {
         b64plaintext: plaintextBuffer.toString("base64")
       , mimetype: mime.lookup(filename)
-      , filename: path.basename(filename)
+      , filename: basename
       }
     , objectString = JSON.stringify(obj)
     ;
@@ -40,7 +41,10 @@ module.exports.encrypt = function (options) {
     }
 
     if (done) {
-      return callback(null, wrapper.wrap(result));
+      return callback(null, wrapper.wrap({
+        ciphertext: result
+      , filename: basename
+      }));
     } else {
       return progressCallback(percent);
     }

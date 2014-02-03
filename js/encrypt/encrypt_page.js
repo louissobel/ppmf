@@ -38,9 +38,10 @@ EncryptPage.prototype.init = function () {
   return this;
 };
 
-EncryptPage.prototype.showReady = function (url) {
+EncryptPage.prototype.showReady = function (url, filename) {
   BasePage.prototype.showReady.call(this);
   this.doneLink.href = url;
+  this.doneLink.download = filename + "__encrypted.html";
 };
 
 EncryptPage.prototype.handleFormSubmit = function () {

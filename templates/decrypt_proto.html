@@ -19,12 +19,12 @@
         <!-- header -->
         <div class="row">
           <div class="col-xs-12">
-            <h3 class="logo">PasswordProtectMyFile.com</h3>
+            {# Literal here because it is double templated #}
+            <h3 class="logo">{{ "{{ filename }}" }} (Encrypted with PasswordProtectMyFile.com)</h3>
           </div>
         </div>
 
         <div class="row main-content">
-
           <div class="col-xs-4 col-xs-offset-4" style="z-index:1">
             <div class="form-box well">
               <div id="loader">

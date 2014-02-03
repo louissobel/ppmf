@@ -13,8 +13,8 @@ HtmlWrapper.prototype.wrap = function (data) {
   // Returns HTML Blob
   var splitCiphertext = this.splitIntoLines(b64ciphertext, this.LINE_LENGTH)
     , wrapped = this.template
-                  .replace("{{ filename }}", filename)
-                  .replace("{{ ciphertext }}", splitCiphertext)
+                  .replace(/{{ filename }}/g, filename)
+                  .replace(/{{ ciphertext }}/g, splitCiphertext)
     ;
   return wrapped;
 };

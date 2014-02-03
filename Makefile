@@ -5,7 +5,7 @@ encrypt_js_deps = $(js_core_deps) js/encrypt/*
 
 css_core_deps = css/common.less css/bootstrap.css
 
-demo_file = img/demo.jpg
+demo_file = img/example.jpg
 demo_password = password
 
 all: webapp demo

@@ -4,6 +4,7 @@ var DecryptPage = require("./decrypt_page")
   , CryptoJS = require("../core/cryptojs")
   , aes = require("../core/aes")
   , blobs = require("../core/blobs")
+  , passwordChecking = require("../core/password_checking")
   ;
 
 var DecryptController = module.exports = function () {
@@ -29,35 +30,30 @@ DecryptController.prototype.submitDecrypt = function (password) {
   aes.decrypt(b64ciphertext, password, this.decryptProgressCallback.bind(this));
 };
 
-DecryptController.prototype.decryptProgressCallback = function (error, percent, done, binaryResult) {
+DecryptController.prototype.decryptProgressCallback = function (error, percent, done, binaryResult, inProgress) {
   if (error) {
-    // for now, assume this means password was bad
-    this.badPassword(error);
+    // Assume this means bad password.
+    this.badPassword();
   } else if (done) {
 
-    var decryptedObject
-      , blob
-      , blobUrl
+    if (!passwordChecking.checkString(binaryResult)) {
+      return this.badPassword();
+    }
+    var jsonifiedObject = passwordChecking.unwrap(binaryResult)
+      , decryptedObject = JSON.parse(jsonifiedObject)
+      , blob = blobs.binaryStringToBlob(atob(decryptedObject.b64plaintext), decryptedObject.mimetype)
+      , blobUrl = URL.createObjectURL(blob)
       ;
 
-    try {
-      decryptedObject = JSON.parse(binaryResult);
-    } catch (err) {
-      return this.badPassword(err);
-    }
-
-    try {
-      blob = blobs.binaryStringToBlob(atob(decryptedObject.b64plaintext), decryptedObject.mimetype);
-    } catch (err) {
-      return this.badPassword(err);
-    }
-
-    blobUrl = URL.createObjectURL(blob);
     this.page.showReady(blobUrl, decryptedObject.filename);
     this.page.hideDecryptForm();
     this.page.hideProgressBar();
 
   } else {
+    if (!passwordChecking.checkWordArray(inProgress)) {
+      this.badPassword();
+      return false;
+    }
     this.page.setProgress(percent);
   }
 

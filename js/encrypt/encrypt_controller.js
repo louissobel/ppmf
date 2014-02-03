@@ -3,6 +3,7 @@
 var EncryptPage = require("./encrypt_page")
   , blobs = require("../core/blobs")
   , aes = require("../core/aes")
+  , passwordChecking = require("../core/password_checking")
   , HtmlWrapper = require("./html_wrapper")
   ;
 
@@ -41,8 +42,10 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
     , mimetype: file.type
     , filename: file.name
     };
-    var jsonifiedString = JSON.stringify(this.decryptedObj);
-    aes.encrypt(jsonifiedString, password, this.encryptProgressCallback.bind(this));
+    var jsonifiedString = JSON.stringify(this.decryptedObj)
+      , passwordCheckedString = passwordChecking.wrap(jsonifiedString)
+      ;
+    aes.encrypt(passwordCheckedString, password, this.encryptProgressCallback.bind(this));
   }.bind(this));
 
 };

@@ -8,6 +8,7 @@ var mime = require("mime")
 
 var HtmlWrapper = require("./encrypt/html_wrapper")
   , aes = require("./core/aes")
+  , passwordChecking = require("./core/password_checking")
   ;
 
 var noop = function () {};
@@ -33,9 +34,10 @@ module.exports.encrypt = function (options) {
       , filename: basename
       }
     , objectString = JSON.stringify(obj)
+    , passwordCheckedString = passwordChecking.wrap(objectString)
     ;
 
-  aes.encrypt(objectString, password, function (err, percent, done, result) {
+  aes.encrypt(passwordCheckedString, password, function (err, percent, done, result) {
     if (err) {
       return callback(err);
     }
@@ -68,31 +70,28 @@ module.exports.decrypt = function (options) {
 
   var ciphertext = regexMatch[1].split("\n").join("");
 
-  aes.decrypt(ciphertext, password, function (err, percent, done, result) {
+  aes.decrypt(ciphertext, password, function (err, percent, done, result, inProgress) {
     if (err) {
       return callback(err);
     }
 
     if (done) {
-      // Unpack it
-      var obj
-        , plaintext
+
+      if (!passwordChecking.checkString(result)) {
+        return callback(new Error("Invalid Password"));
+      }
+
+      var jsonifiedObj = passwordChecking.unwrap(result)
+        , obj = JSON.parse(result)
+        , plaintext = new Buffer(obj.b64plaintext, "base64")
         ;
-
-      try {
-        obj = JSON.parse(result);
-      } catch (error) {
-        return callback(new Error("Invalid Password"));
-      }
-
-      try {
-        plaintext = new Buffer(obj.b64plaintext, "base64");
-      } catch (error) {
-        return callback(new Error("Invalid Password"));
-      }
 
       return callback(null, plaintext);
     } else {
+      if (!passwordChecking.checkWordArray(inProgress)) {
+        callback(new Error("Invalid Password"));
+        return false;
+      }
       return progressCallback(percent);
     }
   });

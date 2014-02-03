@@ -26,7 +26,7 @@ aes.encrypt = function (plaintext, password, callback) {
     ;
 
   // Need to initialize it with the salt.
-  // 0x53616c74, 0x65645f5f are OpenSSL magic salt numbers (SALTED__)
+  // 0x53616c74, 0x65645f5f are OpenSSL magic salt numbers (Salted__)
   var output = CryptoJS.lib.WordArray.create([0x53616c74, 0x65645f5f]).concat(derivedParams.salt);
 
   _runCipher({
@@ -73,15 +73,17 @@ var _cipherStep = function (wordChunker, cipher, output, format, callback) {
       return callback(err);
     }
 
-    return callback(null, 1, true, result);
+    return callback(null, 1, true, result, output);
   } else {
 
     // do a step, tell callback, schedule this again
+    // callback can return false to end things
     output.concat(cipher.process(wordChunker.next()));
-    callback(null, wordChunker.percentComplete(), false);
-
-    setTimeout(function () {
-      _cipherStep(wordChunker, cipher, output, format, callback);
-    }, 0);
+    var keepGoing = callback(null, wordChunker.percentComplete(), false, null, output);
+    if (keepGoing !== false) {
+      setTimeout(function () {
+        _cipherStep(wordChunker, cipher, output, format, callback);
+      }, 0);
+    }
   }
 };

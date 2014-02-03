@@ -15,14 +15,14 @@ var EncryptController = module.exports = function () {
 
 EncryptController.prototype.submitEncrypt = function (password, file) {
   if (password === "") {
-    this.page.showError("You have to pick a password!");
-    return;
+    return this.encryptError("You have to pick a password!");
   }
 
   if (!file) {
-    this.page.showError("Select a file!");
-    return;
+    return this.encryptError("Select a file!");
   }
+
+  this.page.disableForm();
 
   if (file.size > SHOW_PROGRESS_BAR_SIZE_THRESHOLD) {
     this.page.setProgress(0);
@@ -50,7 +50,7 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
 
 EncryptController.prototype.encryptProgressCallback = function (err, percent, done, result) {
   if (err) {
-    this.page.showError(err + "");
+    this.encryptError(err + "");
   } else if (done) {
     var htmlWrapper = new HtmlWrapper(this.page.getDecryptTemplate())
       , htmlString = htmlWrapper.wrap(result)
@@ -60,8 +60,14 @@ EncryptController.prototype.encryptProgressCallback = function (err, percent, do
 
     this.page.hideProgressBar();
     this.page.showReady(blobUrl);
+    this.page.enableForm();
 
   } else {
     this.page.setProgress(percent);
   }
+};
+
+EncryptController.prototype.encryptError = function (message) {
+  this.page.showError(message);
+  this.page.enableForm();
 };

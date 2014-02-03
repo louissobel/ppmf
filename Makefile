@@ -12,7 +12,9 @@ all: webapp demo
 
 demo: pages/example.jpg__encrypted.html
 
-webapp: pages/encrypt.html pages/decrypt_template.html demo
+encrypt: pages/encrypt.html
+
+webapp: encrypt pages/decrypt_template.html demo
 
 pages/encrypt.html: pages/ templates/encrypt.html pages/decrypt_template.html build/encrypt_controller.js build/encrypt.css
 	bin/build_jinja templates/encrypt.html pages/encrypt.html

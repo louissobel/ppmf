@@ -18,6 +18,7 @@ var DecryptController = module.exports = function () {
 };
 
 DecryptController.prototype.submitDecrypt = function (password) {
+  this.page.disableForm();
   var b64ciphertext = this.page.getB64CipherText();
 
   // TODO CHECK LENGTH?
@@ -64,5 +65,6 @@ DecryptController.prototype.decryptProgressCallback = function (error, percent, 
 
 DecryptController.prototype.badPassword = function (a) {
   this.page.hideProgressBar();
+  this.page.enableForm();
   this.page.showError("Incorrect Password!");
 };

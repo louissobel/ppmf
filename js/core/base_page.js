@@ -15,8 +15,26 @@ BasePage.prototype.init = function () {
   this.actionForm = document.getElementById("action-form");
   this.passwordInput = document.getElementById("password");
   
-  this.actionForm.onsubmit = this.handleFormSubmit.bind(this);
+  this.formEnabled = true;
+  this.submitButton = document.getElementById("action-form-submit");
+  this.actionForm.onsubmit = function () {
+    if (this.formEnabled) {
+      this.handleFormSubmit();
+    }
+    return false;
+  }.bind(this);
+
   return this;
+};
+
+BasePage.prototype.disableForm = function () {
+  this.formEnabled = false;
+  this.submitButton.disabled = true;
+};
+
+BasePage.prototype.enableForm = function () {
+  this.formEnabled = true;
+  this.submitButton.disabled = false;
 };
 
 BasePage.prototype.handleFormSubmit = function () {

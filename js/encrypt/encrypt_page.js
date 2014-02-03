@@ -5,8 +5,8 @@
 var FileInputView = require("./file_input_view")
   , BasePage = require("../core/base_page")
   , inherits = require("../core/utils").inherits
+  , SlideView = require("./slide_view")
   ;
-
 
 var EncryptPage = module.exports = function () {};
 inherits(EncryptPage, BasePage);
@@ -21,6 +21,20 @@ EncryptPage.prototype.init = function () {
   this.fileInputView = new FileInputView(this.fileInput, this.fileBrowseButton, this.fileBrowseDisplay);
 
   this.doneLink = document.getElementById("done-link");
+
+  this.slideView = new SlideView(document.getElementById("div-slide-wrapper"));
+  this.learnMoreLink = document.getElementById("learn-more-link");
+  this.learnMoreLink.onclick = function () {
+    this.slideView.rotateLeft();
+    return false;
+  }.bind(this);
+
+  this.leaveFaqLink = document.getElementById("leave-faq-link");
+  this.leaveFaqLink.onclick = function () {
+    this.slideView.rotateRight();
+    return false;
+  }.bind(this);
+
   return this;
 };
 

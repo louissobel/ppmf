@@ -10,15 +10,15 @@ demo_password = password
 
 all: webapp demo
 
-demo: pages/demo.html
+demo: pages/example.jpg__encrypted.html
 
-webapp: pages/encrypt.html pages/decrypt_template.html
+webapp: pages/encrypt.html pages/decrypt_template.html demo
 
 pages/encrypt.html: pages/ templates/encrypt.html pages/decrypt_template.html build/encrypt_controller.js build/encrypt.css
 	bin/build_jinja templates/encrypt.html pages/encrypt.html
 
-pages/demo.html: pages/ pages/decrypt_template.html $(demo_file)
-	node js/ppmf.js --encrypt $(demo_file) --password $(demo_password) --outfile pages/demo.html --template pages/decrypt_template.html --quiet
+pages/example.jpg__encrypted.html: pages/ pages/decrypt_template.html $(demo_file)
+	node js/ppmf.js --encrypt $(demo_file) --password $(demo_password) --outfile pages/example.jpg__encrypted.html --template pages/decrypt_template.html --quiet
 
 pages/decrypt_template.html: templates/decrypt_proto.html build/decrypt_controller.js build/decrypt.css
 	bin/build_jinja templates/decrypt_proto.html pages/decrypt_template.html

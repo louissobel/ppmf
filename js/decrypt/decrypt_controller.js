@@ -19,6 +19,10 @@ var DecryptController = module.exports = function () {
 };
 
 DecryptController.prototype.submitDecrypt = function (password) {
+  if (password === "") {
+    return this.decryptError("You need to enter a password!");
+  }
+
   this.page.disableForm();
   var b64ciphertext = this.page.getB64CipherText();
 
@@ -59,8 +63,12 @@ DecryptController.prototype.decryptProgressCallback = function (error, percent, 
 
 };
 
-DecryptController.prototype.badPassword = function (a) {
+DecryptController.prototype.badPassword = function () {
+  this.decryptError("Incorrect Password!");
+};
+
+DecryptController.prototype.decryptError = function (message) {
   this.page.hideProgressBar();
   this.page.enableForm();
-  this.page.showError("Incorrect Password!");
+  this.page.showError(message);
 };

@@ -49,7 +49,7 @@ DecryptController.prototype.decryptProgressCallback = function (error, percent, 
       , blobUrl = URL.createObjectURL(blob)
       ;
 
-    this.page.showReady(blobUrl, decryptedObject.filename);
+    this.page.showReady(blobUrl, decryptedObject);
     this.page.hideDecryptForm();
     this.page.hideProgressBar();
 

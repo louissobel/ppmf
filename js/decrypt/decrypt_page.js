@@ -5,6 +5,7 @@
 
 var BasePage = require("../core/base_page")
   , inherits = require("../core/utils").inherits
+  , mimeTypes = require("./mime_types")
   ;
 
 var DecryptPage = module.exports = function () {};
@@ -48,9 +49,16 @@ DecryptPage.prototype.getB64CipherText = function () {
   return ciphertextHolder.textContent.split("\n").join("");
 };
 
-DecryptPage.prototype.showReady = function (url, filename) {
-  BasePage.prototype.showReady.call(this);
+DecryptPage.prototype.showReady = function (url, decryptedObj) {
+
+  if (mimeTypes.canViewInWindow(decryptedObj.mimetype)) {
+    this.viewLink.href = url;
+    this.viewLink.style.display = "inline-block";
+  } else {
+    this.viewLink.style.display = "none";
+  }
+
   this.fileLink.href = url;
-  this.fileLink.download = filename;
-  this.viewLink.href = url;
+  this.fileLink.download = decryptedObj.filename;
+  BasePage.prototype.showReady.call(this);
 };

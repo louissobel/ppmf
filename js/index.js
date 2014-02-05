@@ -82,7 +82,7 @@ module.exports.decrypt = function (options) {
       }
 
       var jsonifiedObj = passwordChecking.unwrap(result)
-        , obj = JSON.parse(result)
+        , obj = JSON.parse(jsonifiedObj)
         , plaintext = new Buffer(obj.b64plaintext, "base64")
         ;
 

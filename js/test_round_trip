@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+# Does a simple ppmf round trip test. expects ppmf.js in same directory.
+
+
+FILE="test_round_trip" # run on self!
+
+ORIGINAL_SHA=$(shasum $FILE | cut -d" " -f1)
+
+tempfile=$(mktemp testXXXXXXXX)
+node ppmf.js --encrypt $FILE --password FOOBAR --stdout > $tempfile
+RESULT_SHA=$(node ppmf.js --decrypt $tempfile --password FOOBAR --stdout | shasum | cut -d" " -f1)
+rm $tempfile
+
+echo $ORIGINAL_SHA
+echo $RESULT_SHA
+
+if [ "$ORIGINAL_SHA" == "$RESULT_SHA" ]
+    then
+    echo "OK"
+    exit 0;
+else
+    echo "Round Trip Failed"
+    exit 1;
+fi

@@ -1,14 +1,14 @@
 {
   "name": "ppmf",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "CLI for PasswordProtectMyFile.com",
   "main": "index.js",
   "scripts": {
     "test": "./test_round_trip"
   },
-  "repository": "",
+  "repository": "https://github.com/louissobel/ppmf",
   "author": "Louis Sobel",
-  "license": "MIT",
+  "license": "BSD-4-Clause",
   "dependencies": {
     "optimist": "~0.6.0",
     "mime": "~1.2.11",

@@ -6,6 +6,17 @@ ADDRESS=174.129.237.203
 LOCATION=/app/pages
 IDENTITY_FILE=~/.ssh/ec2/sobel.pem
 
-echo "copying contents of pages to $ADDRESS..."
+echo "*** cleaning for fresh build..."
+make clean
 
+echo "*** re-building with PPMF_PRODUCTION_BUILD set..."
+PPMF_PRODUCTION_BUILD="YES" make webapp
+
+echo "*** copying contents of pages to $ADDRESS..."
 scp -i $IDENTITY_FILE -r pages/* ubuntu@$ADDRESS:$LOCATION
+
+echo "*** cleaning up again..."
+make clean
+
+echo "*** rebuilding dev app"
+make all

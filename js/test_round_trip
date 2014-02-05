@@ -18,7 +18,7 @@ echo $RESULT_SHA
 if [ "$ORIGINAL_SHA" == "$RESULT_SHA" ]
     then
     echo "OK"
-    exit 0;
+    exit 0
 else
     echo "Round Trip Failed"
     exit 1;

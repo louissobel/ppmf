@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # Calls out to browserify
-# In future, could pipe to minifier as well.
+# If PPMF_PRODUCTION_BUILD is set, pipes through slimit
 # Oh! Lints too.
 
 set -e
@@ -12,4 +12,12 @@ jshint -c js/.jshintrc --exclude-path js/.jshintignore js/
 
 echo "Compiling $1 $2"
 
-browserify $1 --standalone $2 > $3
+if [ -z "$PPMF_PRODUCTION_BUILD" ]
+    then
+    PROCESS_COMMAND="cat"
+else
+    echo "Minifying $1"
+    PROCESS_COMMAND="slimit -m"
+fi
+
+browserify $1 --standalone $2 | $PROCESS_COMMAND > $3

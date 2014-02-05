@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+# builds less.
+# will minify if PPMF_PRODUCTION_BUILD is set
+
+if [ -z "$PPMF_PRODUCTION_BUILD" ]
+    then
+    FLAGS=""
+else
+    echo "Minifing $1"
+    FLAGS="--clean-css"
+fi
+
+lessc $FLAGS $1 $2

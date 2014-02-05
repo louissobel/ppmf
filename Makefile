@@ -24,7 +24,7 @@ pages/encrypt.html: pages/ templates/encrypt.html pages/decrypt_template.html bu
 pages/example.jpg__encrypted.html: pages/ pages/decrypt_template.html $(demo_file) js/ppmf.js
 	node js/ppmf.js --encrypt $(demo_file) --password $(demo_password) --outfile pages/example.jpg__encrypted.html --template pages/decrypt_template.html --quiet
 
-pages/decrypt_template.html: templates/decrypt_proto.html build/decrypt_controller.js build/decrypt.css
+pages/decrypt_template.html: pages/ templates/decrypt_proto.html build/decrypt_controller.js build/decrypt.css
 	bin/build_jinja templates/decrypt_proto.html pages/decrypt_template.html
 
 pages/favicon.ico: img/favicon.ico
@@ -37,10 +37,10 @@ build/decrypt_controller.js: build/ $(decrypt_js_deps)
 	bin/build_js js/decrypt/decrypt_controller.js DecryptController build/decrypt_controller.js
 
 build/decrypt.css: css/decrypt.less $(css_core_deps)
-	lessc css/decrypt.less build/decrypt.css
+	bin/build_less css/decrypt.less build/decrypt.css
 
 build/encrypt.css: css/encrypt.less $(css_core_deps)
-	lessc css/encrypt.less build/encrypt.css
+	bin/build_less css/encrypt.less build/encrypt.css
 
 
 pages/:
@@ -55,5 +55,5 @@ clean:
 	rm -rf build/
 
 .PHONY: deploy
-deploy: webapp
+deploy:
 	bin/deploy

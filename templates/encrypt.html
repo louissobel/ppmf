@@ -147,24 +147,26 @@
 
         <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
           <div class="faq">
-            <h3 class="faq-heading">Does PasswordProtectMyFile.com ever see my files?</h3>
+            <h4 class="faq-heading">Does PasswordProtectMyFile.com ever see my file?</h4>
             <p class="about-text">
-              Nope. All the encryption and decryption happens right on your computer
+              Absolutely not. All the encryption and decryption happens via client-side javascript on your computer.
             </p>
           </div>
 
           <div class="faq">
-            <h3 class="faq-heading">Is the code open source?</h3>
+            <h4 class="faq-heading">Can I encrypt or decrypt from the command line?</h4>
             <p class="about-text">
-              Yep. Check it out on <a href="https://github.com/louissobel/ppmf" target="_blank">github</a>
+              Yes! There's an npm package implementing encryption and decryption.
+              <span class="inline-code">npm install -g ppmf &amp;&amp; ppmf --help</span>
             </p>
           </div>
+
         </div>
 
 
         <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
           <div class="faq">
-            <h3 class="faq-heading">What kind of encryption are you using?</h3>
+            <h4 class="faq-heading">How is my file encrypted?</h4>
             <p class="about-text">
               The encryption is AES using an OpenSSL-compatible salt and key derivation function.
               The core crypto implementation is from the open-source google library
@@ -173,10 +175,17 @@
           </div>
 
           <div class="faq">
-            <h3 class="faq-heading">Can I see an example of what an encrypted file looks like?</h3>
+            <h4 class="faq-heading">Is the code open source?</h4>
             <p class="about-text">
-              Sure, check out a demo <a href="./example.jpg__encrypted.html" target="_blank">here</a>. The password is
-              <span class="demo-password">password</span>.
+              Check it out on <a href="https://github.com/louissobel/ppmf" target="_blank">github</a>
+            </p>
+          </div>
+
+          <div class="faq">
+            <h4 class="faq-heading">Can I see an example of what an encrypted file looks like?</h4>
+            <p class="about-text">
+              Sure, check out a <a href="./example.jpg__encrypted.html" target="_blank">demo</a>. The password is
+              <span class="inline-code">password</span>.
             </p>
           </div>
         </div>

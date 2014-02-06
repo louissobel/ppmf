@@ -6,8 +6,14 @@
   "scripts": {
     "test": "./test_round_trip"
   },
-  "repository": "https://github.com/louissobel/ppmf",
-  "author": "Louis Sobel",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/louissobel/ppmf"
+  },
+  "readmeFilename": "README.md",
+  "author": {
+    "name":"Louis Sobel"
+  },
   "license": "BSD-4-Clause",
   "dependencies": {
     "optimist": "~0.6.0",

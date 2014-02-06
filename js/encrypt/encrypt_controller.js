@@ -36,9 +36,9 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
   this.page.hideReady();
 
   // turn the file into a binary string
-  blobs.blobToBinaryString(file, function (err, result) {
+  blobs.blobToBase64(file, function (err, result) {
     this.decryptedObj = {
-      b64plaintext: btoa(result)
+      b64plaintext: result
     , mimetype: file.type
     , filename: file.name
     };
@@ -60,12 +60,13 @@ EncryptController.prototype.encryptProgressCallback = function (err, percent, do
                      , filename: this.decryptedObj.filename
                      })
       , htmlBlob = blobs.binaryStringToBlob(htmlString, "text/html")
-      , blobUrl = URL.createObjectURL(htmlBlob)
       ;
 
-    this.page.hideProgressBar();
-    this.page.showReady(blobUrl, this.decryptedObj.filename);
-    this.page.enableForm();
+    blobs.getBlobUrl(htmlBlob, function (err, blobUrl) {
+      this.page.hideProgressBar();
+      this.page.showReady(blobUrl, this.decryptedObj.filename);
+      this.page.enableForm();
+    }.bind(this));
 
   } else {
     this.page.setProgress(percent);

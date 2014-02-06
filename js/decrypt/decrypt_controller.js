@@ -46,12 +46,13 @@ DecryptController.prototype.decryptProgressCallback = function (error, percent, 
     var jsonifiedObject = passwordChecking.unwrap(binaryResult)
       , decryptedObject = JSON.parse(jsonifiedObject)
       , blob = blobs.binaryStringToBlob(atob(decryptedObject.b64plaintext), decryptedObject.mimetype)
-      , blobUrl = URL.createObjectURL(blob)
       ;
 
-    this.page.showReady(blobUrl, decryptedObject);
-    this.page.hideDecryptForm();
-    this.page.hideProgressBar();
+    blobs.getBlobUrl(blob, function (err, blobUrl) {
+      this.page.showReady(blobUrl, decryptedObject);
+      this.page.hideDecryptForm();
+      this.page.hideProgressBar();
+    }.bind(this));
 
   } else {
     if (!passwordChecking.checkWordArray(inProgress)) {

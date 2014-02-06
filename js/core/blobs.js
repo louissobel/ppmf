@@ -27,7 +27,7 @@ module.exports.binaryStringToBlob = function (byteCharacters, contentType) {
   return new Blob(byteArrays, {type: contentType});
 };
 
-module.exports.blobToBinaryString = function (blob, callback) {
+module.exports.blobToBase64 = function (blob, callback) {
   // http://jsperf.com/blob-base64-conversion
 
   // TODO: handle error?
@@ -35,8 +35,16 @@ module.exports.blobToBinaryString = function (blob, callback) {
   var reader = new FileReader();
 
   reader.onload = function() {
-    callback(null, reader.result);
+    var base64 = reader.result.substring(reader.result.indexOf(",") + 1);
+    callback(null, base64);
   };
 
-  reader.readAsBinaryString(blob);
+  reader.readAsDataURL(blob);
+};
+
+module.exports.getBlobUrl = function (blob, callback) {
+  // Schedule it for async consistency
+  setTimeout(function () {
+    callback(null, URL.createObjectURL(blob));
+  }, 0);
 };

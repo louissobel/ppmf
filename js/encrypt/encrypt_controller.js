@@ -2,6 +2,8 @@
 
 var EncryptPage = require("./encrypt_page")
   , blobs = require("../core/blobs")
+  , blobDelivery = require("../core/blob_delivery")
+  , unsupportedBrowser = require("../core/unsupported_browser")
   , aes = require("../core/aes")
   , passwordChecking = require("../core/password_checking")
   , HtmlWrapper = require("./html_wrapper")
@@ -10,6 +12,10 @@ var EncryptPage = require("./encrypt_page")
 var SHOW_PROGRESS_BAR_SIZE_THRESHOLD = 1024;
 
 var EncryptController = module.exports = function () {
+  if (!this.onSupportedBrowser()) {
+    return unsupportedBrowser();
+  }
+
   this.page = (new EncryptPage()).init();
   this.page.submitCallback = this.submitEncrypt.bind(this);
 };
@@ -81,4 +87,8 @@ EncryptController.prototype.encryptProgressCallback = function (err, percent, do
 EncryptController.prototype.encryptError = function (message) {
   this.page.showError(message);
   this.page.enableForm();
+};
+
+EncryptController.prototype.onSupportedBrowser = function () {
+  return blobDelivery.canDeliverBlobDownloads() && blobDelivery.canReadBlob();
 };

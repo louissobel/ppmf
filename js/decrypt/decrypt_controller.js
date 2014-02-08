@@ -4,13 +4,19 @@ var DecryptPage = require("./decrypt_page")
   , CryptoJS = require("../core/cryptojs")
   , aes = require("../core/aes")
   , blobs = require("../core/blobs")
+  , blobDelivery = require("../core/blob_delivery")
+  , unsupportedBrowser = require("../core/unsupported_browser")
   , passwordChecking = require("../core/password_checking")
   ;
 
 var DecryptController = module.exports = function () {
+
+  if (!this.onSupportedBrowser()) {
+    return unsupportedBrowser();
+  }
+
   // Setup page
   this.page = (new DecryptPage()).init();
-
   this.page.submitCallback = this.submitDecrypt.bind(this);
 
   this.page.hideLoader();
@@ -74,4 +80,8 @@ DecryptController.prototype.decryptError = function (message) {
   this.page.hideProgressBar();
   this.page.enableForm();
   this.page.showError(message);
+};
+
+DecryptController.prototype.onSupportedBrowser = function () {
+  return blobDelivery.canDeliverBlobDownloads();
 };

@@ -7,16 +7,17 @@
 var blobs = require("./blobs");
 
 module.exports.canReadBlob = function () {
-  // checks that FileReader interface exists and everythign
+  // checks that FileReader interface exists
+  // and that we have the blob constructor
   // will be used for browser back checkign
-  return !!window.FileReader;
+  return !!window.FileReader && !!window.Blob;
 };
 
 module.exports.canDeliverBlobDownloads = function () {
   // checks if we are able to deliver the blob
   // will be used for browser back checking
-  // basically, do we have window.URL
-  var ok = !!window.URL;
+  // basically, do we have window.URL and the blob constructor
+  var ok = !!window.URL && !!window.Blob;
   if (dataURLFallback()) {
     // then we need to be able to read blob
     ok = ok && module.exports.canReadBlob();

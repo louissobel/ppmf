@@ -48,8 +48,10 @@ DecryptController.prototype.decryptProgressCallback = function (error, percent, 
       , blob = blobs.binaryStringToBlob(atob(decryptedObject.b64plaintext), decryptedObject.mimetype)
       ;
 
-    blobs.getBlobUrl(blob, function (err, blobUrl) {
-      this.page.showReady(blobUrl, decryptedObject);
+    this.page.showReady(blob, decryptedObject, function (err) {
+      if (err) {
+        return this.decryptError(err);
+      }
       this.page.hideDecryptForm();
       this.page.hideProgressBar();
     }.bind(this));

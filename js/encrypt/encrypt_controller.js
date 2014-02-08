@@ -62,9 +62,14 @@ EncryptController.prototype.encryptProgressCallback = function (err, percent, do
       , htmlBlob = blobs.binaryStringToBlob(htmlString, "text/html")
       ;
 
-    blobs.getBlobUrl(htmlBlob, function (err, blobUrl) {
+    this.page.showReady({
+      filename: this.decryptedObj.filename
+    , blob: htmlBlob
+    }, function (err) {
+      if (err) {
+        return this.encryptError(err);
+      }
       this.page.hideProgressBar();
-      this.page.showReady(blobUrl, this.decryptedObj.filename);
       this.page.enableForm();
     }.bind(this));
 

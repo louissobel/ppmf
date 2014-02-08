@@ -4,6 +4,7 @@
 // Interfaces with DOM
 
 var BasePage = require("../core/base_page")
+  , blobDelivery = require("../core/blob_delivery")
   , inherits = require("../core/utils").inherits
   , mimeTypes = require("./mime_types")
   ;
@@ -49,16 +50,43 @@ DecryptPage.prototype.getB64CipherText = function () {
   return ciphertextHolder.textContent.split("\n").join("");
 };
 
-DecryptPage.prototype.showReady = function (url, decryptedObj) {
+DecryptPage.prototype.showReady = function (blob, decryptedObj, callback) {
 
-  if (mimeTypes.canViewInWindow(decryptedObj.mimetype)) {
-    this.viewLink.href = url;
-    this.viewLink.style.display = "inline-block";
+  var createFileLink = function (err) {
+    if (err) {
+      return callback(err);
+    }
+
+    blobDelivery.makeLink({
+      blob: blob
+    , filename: decryptedObj.filename
+    , download: true
+    , link: this.fileLink
+    , onready: function (err) {
+        if (err) {
+          return callback(err);
+        }
+        BasePage.prototype.showReady.call(this);
+        return callback(null);
+      }.bind(this)
+    });
+  }.bind(this);
+
+  if (mimeTypes.canViewInWindow(decryptedObj.mimetype) && blobDelivery.canDeliverBlobPreviews()) {
+    blobDelivery.makeLink({
+      blob: blob
+    , link: this.viewLink
+    , download: false
+    , onready: function (err) {
+        if (!err) {
+          this.viewLink.style.display = "inline-block";
+        }
+        createFileLink(err);
+      }.bind(this)
+    });
   } else {
     this.viewLink.style.display = "none";
+    createFileLink(null);
   }
 
-  this.fileLink.href = url;
-  this.fileLink.download = decryptedObj.filename;
-  BasePage.prototype.showReady.call(this);
 };

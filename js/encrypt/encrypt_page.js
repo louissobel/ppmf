@@ -4,6 +4,7 @@
 
 var FileInputView = require("./file_input_view")
   , BasePage = require("../core/base_page")
+  , blobDelivery = require("../core/blob_delivery")
   , inherits = require("../core/utils").inherits
   , SlideView = require("./slide_view")
   ;
@@ -38,10 +39,19 @@ EncryptPage.prototype.init = function () {
   return this;
 };
 
-EncryptPage.prototype.showReady = function (url, filename) {
-  BasePage.prototype.showReady.call(this);
-  this.doneLink.href = url;
-  this.doneLink.download = filename + "__encrypted.html";
+EncryptPage.prototype.showReady = function (options, callback) {
+  blobDelivery.makeLink({
+    link: this.doneLink
+  , filename: options.filename + "__encrypted.html"
+  , blob: options.blob
+  , onready: function (err) {
+      if (!err) {
+        BasePage.prototype.showReady.call(this);
+        return callback(err);
+      }
+    }.bind(this)
+  });
+
 };
 
 EncryptPage.prototype.handleFormSubmit = function () {

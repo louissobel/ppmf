@@ -57,3 +57,7 @@ clean:
 .PHONY: deploy
 deploy:
 	bin/deploy
+
+.PHONY: server
+server:
+	python -m SimpleHTTPServer

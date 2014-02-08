@@ -24,10 +24,6 @@ module.exports.canDeliverBlobDownloads = function () {
   return ok;
 };
 
-module.exports.canDeliverBlobPreviews = function () {
-  return (!onIE10Plus() && !!window.URL);
-};
-
 var onIE10Plus = function () {
   return !!window.navigator.msSaveBlob;
 };
@@ -46,18 +42,12 @@ module.exports.makeLink = function (options) {
   var link = options.link
     , blob = options.blob
     , filename = options.filename
-    , download = options.download || true
-    , preview = !download
     , onready = options.onready || function () {}
     , onreadyAsync = function (e) { setTimeout(function () { onready(e); }, 0); }
     ;
 
-  if (download && !module.exports.canDeliverBlobDownloads()) {
+  if (!module.exports.canDeliverBlobDownloads()) {
     return onreadyAsync(new Error("Unable to deliver download"));
-  }
-
-  if (preview && !module.exports.canDeliverBlobPreviews()) {
-    return onreadyAsync(new Error("Unable to deliver preview"));
   }
 
   // OK, check first if we are IE 10+

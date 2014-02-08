@@ -45,10 +45,11 @@ EncryptPage.prototype.showReady = function (options, callback) {
   , filename: options.filename + "__encrypted.html"
   , blob: options.blob
   , onready: function (err) {
-      if (!err) {
-        BasePage.prototype.showReady.call(this);
+      if (err) {
         return callback(err);
       }
+      BasePage.prototype.showReady.call(this);
+      return callback(null);
     }.bind(this)
   });
 

@@ -15,7 +15,6 @@ inherits(DecryptPage, BasePage);
 DecryptPage.prototype.init = function () {
   BasePage.prototype.init.call(this);
   this.fileLink = document.getElementById("file-link");
-  this.viewLink = document.getElementById("view-link");
   this.loader = document.getElementById("loader");
   return this;
 };
@@ -51,42 +50,16 @@ DecryptPage.prototype.getB64CipherText = function () {
 };
 
 DecryptPage.prototype.showReady = function (blob, decryptedObj, callback) {
-
-  var createFileLink = function (err) {
-    if (err) {
-      return callback(err);
-    }
-
-    blobDelivery.makeLink({
-      blob: blob
-    , filename: decryptedObj.filename
-    , download: true
-    , link: this.fileLink
-    , onready: function (err) {
-        if (err) {
-          return callback(err);
-        }
-        BasePage.prototype.showReady.call(this);
-        return callback(null);
-      }.bind(this)
-    });
-  }.bind(this);
-
-  if (mimeTypes.canViewInWindow(decryptedObj.mimetype) && blobDelivery.canDeliverBlobPreviews()) {
-    blobDelivery.makeLink({
-      blob: blob
-    , link: this.viewLink
-    , download: false
-    , onready: function (err) {
-        if (!err) {
-          this.viewLink.style.display = "inline-block";
-        }
-        createFileLink(err);
-      }.bind(this)
-    });
-  } else {
-    this.viewLink.style.display = "none";
-    createFileLink(null);
-  }
-
+  blobDelivery.makeLink({
+    blob: blob
+  , filename: decryptedObj.filename
+  , link: this.fileLink
+  , onready: function (err) {
+      if (err) {
+        return callback(err);
+      }
+      BasePage.prototype.showReady.call(this);
+      return callback(null);
+    }.bind(this)
+  });
 };

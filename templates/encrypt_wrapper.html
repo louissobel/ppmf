@@ -1,0 +1,57 @@
+<html>
+
+<head>
+
+  <title>Password Protect My File</title>
+
+  <style type="text/css">
+{{ include_file('build/encrypt.css') }}
+  </style>
+
+  <script>
+{{ include_file('build/encrypt_controller.js') }}
+  </script>
+
+</head>
+
+<body onload="init()">
+
+  <div style="padding:15px;">
+
+    <!-- header -->
+    <div class="row">
+      <div class="col-xs-12">
+        <h3 class="logo">PasswordProtectMyFile.com</h3>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div id="div-slide-wrapper" class="div-slide-wrapper">
+        {% block div_slides %}
+        {% endblock %}
+        <div class="clearfix"></div>
+      </div>
+    </div>
+
+    <!-- footer -->
+    <div class="row">
+      <div class="col-xs-12">
+        <div class="footer">
+          <h6>Copyright Louis Sobel</h6>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="decrypt-template" style="display:none;">
+{{ include_file('pages/decrypt_template.html')|escape }}
+  </div>
+
+  <script type="text/javascript">
+      function init() {
+        new EncryptController();
+      }
+  </script>
+</body>
+</html>

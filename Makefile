@@ -8,18 +8,25 @@ css_core_deps = css/common.less css/bootstrap.css
 demo_file = img/example.jpg
 demo_password = password
 
+main_page_deps = templates/encrypt_wrapper.html templates/_faq.html templates/_main.html build/encrypt_controller.js build/encrypt.css pages/decrypt_template.html
+
 all: webapp demo
 
 demo: pages/example.jpg__encrypted.html
 
 encrypt: pages/encrypt.html
 
+faq: pages/faq.html
+
 favicon: pages/favicon.ico
 
-webapp: encrypt pages/decrypt_template.html demo favicon
+webapp: encrypt pages/decrypt_template.html demo favicon faq
 
-pages/encrypt.html: pages/ templates/encrypt.html pages/decrypt_template.html build/encrypt_controller.js build/encrypt.css
+pages/encrypt.html: pages/ templates/encrypt.html $(main_page_deps)
 	bin/build_jinja templates/encrypt.html pages/encrypt.html
+
+pages/faq.html: pages/ templates/faq.html $(main_page_deps)
+	bin/build_jinja templates/faq.html pages/faq.html
 
 pages/example.jpg__encrypted.html: pages/ pages/decrypt_template.html $(demo_file) js/ppmf.js
 	node js/ppmf.js --encrypt $(demo_file) --password $(demo_password) --outfile pages/example.jpg__encrypted.html --template pages/decrypt_template.html --quiet
@@ -60,4 +67,4 @@ deploy:
 
 .PHONY: server
 server:
-	python -m SimpleHTTPServer
+	cd pages/ && python -m SimpleHTTPServer

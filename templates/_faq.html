@@ -1,0 +1,54 @@
+<div class="row div-slide">
+  <div class="col-xs-12">
+    <div class="leave-faq ppmf-nav-link">
+      <a id="leave-faq-link" href="/">&laquo; Back</a>
+    </div>
+  </div>
+
+  <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+    <div class="faq">
+      <h4 class="faq-heading">Does PasswordProtectMyFile.com ever see my file?</h4>
+      <p class="about-text">
+        Absolutely not. All the encryption and decryption happens via client-side javascript on your computer.
+      </p>
+    </div>
+
+    <div class="faq">
+      <h4 class="faq-heading">Can I encrypt or decrypt from the command line?</h4>
+      <p class="about-text">
+        Yes! There's an npm package implementing encryption and decryption.
+        <span class="inline-code">npm install -g ppmf &amp;&amp; ppmf --help</span>
+      </p>
+    </div>
+
+  </div>
+
+
+  <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+    <div class="faq">
+      <h4 class="faq-heading">How is my file encrypted?</h4>
+      <p class="about-text">
+        The encryption is AES using an OpenSSL-compatible salt and key derivation function.
+        The core crypto implementation is from the open-source google library
+        <a href="https://code.google.com/p/crypto-js/" target="_blank">CryptoJS</a>.
+      </p>
+    </div>
+
+    <div class="faq">
+      <h4 class="faq-heading">Is the code open source?</h4>
+      <p class="about-text">
+        Check it out on <a href="https://github.com/louissobel/ppmf" target="_blank">github</a>
+      </p>
+    </div>
+
+    <div class="faq">
+      <h4 class="faq-heading">Can I see an example of what an encrypted file looks like?</h4>
+      <p class="about-text">
+        Sure, here's an <a href="./example.jpg__encrypted.html" target="_blank">encrypted picture of a cow</a>. The password is
+        <span class="inline-code">password</span>.
+      </p>
+    </div>
+  </div>
+
+
+</div>

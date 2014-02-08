@@ -6,7 +6,6 @@
 var BasePage = require("../core/base_page")
   , blobDelivery = require("../core/blob_delivery")
   , inherits = require("../core/utils").inherits
-  , mimeTypes = require("./mime_types")
   ;
 
 var DecryptPage = module.exports = function () {};

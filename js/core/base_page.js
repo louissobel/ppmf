@@ -70,3 +70,7 @@ BasePage.prototype.showProgressBar = function () {
 BasePage.prototype.hideProgressBar = function () {
   this.progressBar.hide();
 };
+
+BasePage.prototype.focusPassword = function () {
+  this.passwordInput.focus();
+};

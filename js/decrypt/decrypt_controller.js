@@ -26,7 +26,9 @@ var DecryptController = module.exports = function () {
 
 DecryptController.prototype.submitDecrypt = function (password) {
   if (password === "") {
-    return this.decryptError("You need to enter a password!");
+    this.decryptError("You need to enter a password!");
+    this.page.focusPassword();
+    return false;
   }
 
   this.page.disableForm();
@@ -74,6 +76,7 @@ DecryptController.prototype.decryptProgressCallback = function (error, percent, 
 
 DecryptController.prototype.badPassword = function () {
   this.decryptError("Incorrect Password!");
+  this.page.focusPassword();
 };
 
 DecryptController.prototype.decryptError = function (message) {

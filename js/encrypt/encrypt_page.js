@@ -20,6 +20,7 @@ EncryptPage.prototype.init = function () {
   this.fileBrowseDisplay = document.getElementById("file-select-display");
 
   this.fileInputView = new FileInputView(this.fileInput, this.fileBrowseButton, this.fileBrowseDisplay);
+  this.fileInputView.onchange = this.focusPassword.bind(this);
 
   this.doneLink = document.getElementById("done-link");
 
@@ -76,4 +77,8 @@ EncryptPage.prototype.handleLeaveFaq = function () {
   }
   this.slideView.rotateRight();
   return false;
+};
+
+EncryptPage.prototype.focusFileBrowse = function () {
+  this.fileBrowseButton.focus();
 };

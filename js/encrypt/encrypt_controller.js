@@ -21,12 +21,17 @@ var EncryptController = module.exports = function () {
 };
 
 EncryptController.prototype.submitEncrypt = function (password, file) {
-  if (password === "") {
-    return this.encryptError("You have to pick a password!");
-  }
 
   if (!file) {
-    return this.encryptError("Select a file!");
+    this.encryptError("You need to pick a file!");
+    this.page.focusFileBrowse();
+    return false;
+  }
+
+  if (password === "") {
+    this.encryptError("You need to pick a password!");
+    this.page.focusPassword();
+    return false;
   }
 
   this.page.disableForm();

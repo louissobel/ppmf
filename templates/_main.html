@@ -21,22 +21,19 @@
   <div class="col-lg-4 col-md-4 col-sm-5 col-xs-6">
     <div class="form-box well">
       <div>
-        <form id="action-form">
+        <form id="action-form" class="form-inline" role="form">
 
           <!-- hidden file select -->
           <input id="file-select" type="file" style="display:none;" />
 
-          <p>
-            <label for="file-select-button">Pick a file:</label>
-            <span style="display:inline-block;">
-              <input class="btn btn-info btn-sm" id="file-select-button" type="button" value="browse" />
-              <input id="file-select-display" type="text" placeholder="None Chosen" />
-            </span>
-          </p>
+          <div class="file-select-wrapper">
+            <span id="file-select-display" class="form-control"></span>
+            <button type="button" class="btn btn-info" id="file-select-button">Pick a file</button>
+          </div>
 
           <p>
-            <label for="password">Pick a password:</label>
-            <input id="password" type="password"/>
+            <label for="password" class="control-label">Pick a password:</label>
+            <input id="password" type="password" class="form-control"/>
           </p>
 
           <button type="submit" id="action-form-submit" class="btn btn-warning btn-block">Encrypt</button>

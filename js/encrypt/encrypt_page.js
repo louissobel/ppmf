@@ -23,6 +23,7 @@ EncryptPage.prototype.init = function () {
   this.fileInputView.onchange = this.focusPassword.bind(this);
 
   this.doneLink = document.getElementById("done-link");
+  this.dropboxLinkContainer = document.getElementById("dropbox-saver-link-container");
 
   this.slideView = new SlideView(document.getElementById("div-slide-wrapper"));
   this.learnMoreLink = document.getElementById("learn-more-link");
@@ -34,16 +35,40 @@ EncryptPage.prototype.init = function () {
 };
 
 EncryptPage.prototype.showReady = function (options, callback) {
+  var filename = options.filename + "__encrypted.html";
+
   blobDelivery.makeLink({
     link: this.doneLink
-  , filename: options.filename + "__encrypted.html"
+  , filename: filename
   , blob: options.blob
   , onready: function (err) {
       if (err) {
         return callback(err);
       }
-      BasePage.prototype.showReady.call(this);
-      return callback(null);
+
+      // Make the dropbox link
+      // (empty the container first)
+      while (this.dropboxLinkContainer.firstChild) {
+        this.dropboxLinkContainer.removeChild(this.dropboxLinkContainer.firstChild);
+      }
+
+      blobDelivery.makeLink({
+        link: this.dropboxLinkContainer
+      , filename: filename
+      , blob: options.blob
+      , dropboxLink: true
+      , onready: function (err) {
+          if (err) {
+            // Fine. make sure link is not visible though.
+            this.dropboxLinkContainer.style.display = "none";
+          } else {
+            this.dropboxLinkContainer.style.display = "block";
+          }
+          BasePage.prototype.showReady.call(this);
+          return callback(null);
+        }.bind(this)
+      });
+
     }.bind(this)
   });
 

@@ -25,16 +25,9 @@ EncryptPage.prototype.init = function () {
 
   this.slideView = new SlideView(document.getElementById("div-slide-wrapper"));
   this.learnMoreLink = document.getElementById("learn-more-link");
-  this.learnMoreLink.onclick = function () {
-    this.slideView.rotateLeft();
-    return false;
-  }.bind(this);
-
   this.leaveFaqLink = document.getElementById("leave-faq-link");
-  this.leaveFaqLink.onclick = function () {
-    this.slideView.rotateRight();
-    return false;
-  }.bind(this);
+  this.learnMoreLink.onclick = this.handleLearnMore.bind(this);
+  this.leaveFaqLink.onclick = this.handleLeaveFaq.bind(this);
 
   return this;
 };
@@ -67,4 +60,20 @@ EncryptPage.prototype.handleFormSubmit = function () {
 
 EncryptPage.prototype.getDecryptTemplate = function () {
   return document.getElementById("decrypt-template").textContent;
+};
+
+EncryptPage.prototype.handleLearnMore = function () {
+  this.slideView.rotateLeft();
+  return false;
+};
+
+EncryptPage.prototype.handleLeaveFaq = function () {
+  // If we are on /faq, after we are done rotating, go to /
+  if (window.location.pathname.match(/faq$/)) {
+    this.slideView.onrotate = function () {
+      window.location = "/";
+    };
+  }
+  this.slideView.rotateRight();
+  return false;
 };

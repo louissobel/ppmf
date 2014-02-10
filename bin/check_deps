@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+RESTORE='\033[0m'
+
+RED='\033[00;31m'
+GREEN='\033[00;32m'
+
+function red {
+  echo -e "$RED$1$RESTORE"
+}
+
+function green {
+  echo -e "$GREEN$1$RESTORE"
+}
+
+function which-check {
+  which $1 >/dev/null
+  return $?
+}
+
+function check-python {
+  which-check python
+  return $?
+}
+
+function check-slimit {
+  which-check slimit
+  return $?
+}
+
+function check-jinja2 {
+  python -c "import jinja2" 2>/dev/null
+  return $?
+}
+
+function check-jshint {
+  which-check jshint
+  return $?
+}
+
+function check-lessc {
+  which-check lessc
+  return $?
+}
+
+function check-browserify {
+  which-check browserify
+  return $?
+}
+
+function do-check {
+  printf "%s: " $1
+  check-$1
+  if [ $? -eq 1 ]
+  then
+    red "MISSING"
+  else
+    green "OK!"
+  fi
+}
+
+do-check python
+do-check jinja2
+do-check slimit
+do-check jshint
+do-check lessc
+do-check browserify
+

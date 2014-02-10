@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# downloads page (using curl)
+# gets its shasum
+# extracts its revision
+# builds in production at that revision
+# does the comparison!
+set -e
+
+URL=https://www.passwordprotectmyfile.com
+
+function just_sha {
+  echo $1 | cut -d' ' -f1
+}
+
+echo "*** Getting page"
+PAGE=$(curl $URL)
+
+echo "*** extracting revision #"
+REVISION=`echo $PAGE | perl -n -e'/Revision (\d+)</ && print $1'`
+echo "got revision $REVISION"
+
+echo "*** getting shasum of page"
+URLSHA=`printf "%s" "$PAGE" | shasum`
+
+echo "*** checking out that revision"
+git checkout r$REVISION
+
+echo "*** doing a production build"
+make clean
+PPMF_PRODUCTION_BUILD="YES" make webapp
+
+echo "getting shasum of build pages/encrypt.html"
+PAGESHA=`shasum pages/encrypt.html`
+
+echo "***********************************"
+echo "Shasum of $URL: $(just_sha $URLSHA)"
+echo "Shasum of pages/encrypt.html: $(just_sha $PAGESHA)"
+if [ $(just_sha $URLSHA) == $(just_sha $PAGESHA) ]
+  then
+  echo "OK!"
+else
+  echo "FAILURE!"
+  exit 1
+fi
+echo "***********************************"
+
+echo "*** The repository is in a funky state"
+echo "- \`git checkout master\` will get you back on a branch"
+echo "- \`make clean\` will remove the built files"

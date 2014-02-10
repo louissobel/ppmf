@@ -1,4 +1,6 @@
 {
+  "name": "ppmf-site",
+  "version": "0.0.0",
   "dependencies": {
     "jshint": ">=2.4.3",
     "less": ">=1.6.1",

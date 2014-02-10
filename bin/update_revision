@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+# increments revision
+# commits the change
+# and tags it
+# requires us to
+#  - be on master
+#  - have a clean index
+# working directory is allowed to be dirty
+
+function die {
+  echo $1 1>&2
+  exit 1
+}
+
+REQUIRED_BRANCH=master
+REVISION_FILE=$1
+
+if [ -z $REVISION_FILE ]
+then
+	die "Argument to $0 must be revision file filename"
+fi
+
+# check that we're on master
+BRANCH=`git rev-parse --abbrev-ref HEAD`
+if [ $BRANCH != $REQUIRED_BRANCH ]
+then
+	die "Must update revision from $REQUIRED_BRANCH branch"
+fi
+
+# check that our stage is empty
+git diff-index --quiet --cached HEAD
+NOTEMPTY=$?
+
+
+if [ $NOTEMPTY -eq 1 ]
+then
+	die "There cannot be any staged changes when updating revision. git reset"
+fi
+
+CURRENT_REV=`cat $REVISION_FILE`
+NEW_REV=`expr $CURRENT_REV + 1`
+
+echo "Updating revision to $NEW_REV"
+printf $NEW_REV > $REVISION_FILE
+
+# OK. now lets add, commit, and tag with the revision
+set -e
+git add $REVISION_FILE
+git commit -m "Increment revision to $NEW_REV"
+git tag -a r$NEW_REV -m "revision $NEW_REV"

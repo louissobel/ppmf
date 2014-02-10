@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
+set -e
 
 # deploys
 
 ADDRESS=174.129.237.203
 LOCATION=/app/pages
 IDENTITY_FILE=~/.ssh/ec2/sobel.pem
+
+echo "*** incrementing revision"
+bin/update_revision REVISION
 
 echo "*** cleaning for fresh build..."
 make clean

@@ -7,5 +7,6 @@
 module.exports = function () {
   var errorBox = document.getElementById("error-box");
   errorBox.style.display = "block";
-  errorBox.innerHTML = "You are using an unsupported browser.";
+  errorBox.innerHTML = "<p>You are using an unsupported browser.</p>" +
+                       "<p>Supported browsers include Chrome, Firefox, Opera, Internet Explorer 10+, and Safari 6.1+</p>";
 };

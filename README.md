@@ -15,7 +15,7 @@ Source code for https://www.passwordprotectmyfile.com
 
 `pip install -r requirements.txt`
 
-`npm install -g package.json`
+`npm install -g`
 
 #### Details:
 
@@ -29,9 +29,9 @@ Executables in `$PATH`
 
 `requirements.txt` has the python requirements (`slimit` and `jinja2`)
 
-`package.json` _in the top level_ contains the node.js executable list
+`package.json` _in the top level_ contains the node.js packages whose executables are required.
 
-`bin/check_deps` will check that all requirements are satisfied
+`bin/check_deps` will check that all requirements are satisfied.
 
 ### Comparing Website to the code in this repo
 

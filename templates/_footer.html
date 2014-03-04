@@ -1,0 +1,24 @@
+<!-- footer -->
+<div class="row">
+  <div class="col-xs-12">
+    <div class="footer">
+      <h6>
+        <a target="_blank" href="https://github.com/louissobel/ppmf">
+          Copyright Louis Sobel
+        </a>
+        |
+        {% set REVISION = include_file('REVISION') %}
+        <a
+          target="_blank"
+          data-revision-id="{{ REVISION }}"
+          href="https://github.com/louissobel/ppmf/tree/r{{ REVISION }}">
+          Revision {{ REVISION }}
+        </a>
+        |
+        <a target="_blank" href="https://github.com/louissobel/ppmf/issues">
+          Bugs
+        </a>
+      </h6>
+    </div>
+  </div>
+</div>

@@ -14,7 +14,9 @@ BasePage.prototype.init = function () {
 
   this.actionForm = document.getElementById("action-form");
   this.passwordInput = document.getElementById("password");
-  
+
+  this.readyShowing = false;
+
   this.formEnabled = true;
   this.submitButton = document.getElementById("action-form-submit");
   this.actionForm.onsubmit = function () {
@@ -48,10 +50,12 @@ BasePage.prototype.setProgress = function (percent) {
 
 BasePage.prototype.showReady = function () {
   this.readyBox.style.display = "block";
+  this.readyShowing = true;
 };
 
 BasePage.prototype.hideReady = function () {
   this.readyBox.style.display = "none";
+  this.readyShowing = false;
 };
 
 BasePage.prototype.showError = function (errmessage) {
@@ -73,4 +77,8 @@ BasePage.prototype.hideProgressBar = function () {
 
 BasePage.prototype.focusPassword = function () {
   this.passwordInput.focus();
+};
+
+BasePage.prototype.clearPassword = function () {
+  this.passwordInput.value = "";
 };

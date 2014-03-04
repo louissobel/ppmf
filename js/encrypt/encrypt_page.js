@@ -20,7 +20,7 @@ EncryptPage.prototype.init = function () {
   this.fileBrowseDisplay = document.getElementById("file-select-display");
 
   this.fileInputView = new FileInputView(this.fileInput, this.fileBrowseButton, this.fileBrowseDisplay);
-  this.fileInputView.onchange = this.focusPassword.bind(this);
+  this.fileInputView.onchange = this.handleFileChange.bind(this);
 
   this.doneLink = document.getElementById("done-link");
   this.dropboxLinkContainer = document.getElementById("dropbox-saver-link-container");
@@ -101,6 +101,14 @@ EncryptPage.prototype.doSubmitForm = function (options) {
 
 EncryptPage.prototype.getDecryptTemplate = function () {
   return document.getElementById("decrypt-template").textContent;
+};
+
+EncryptPage.prototype.handleFileChange = function () {
+  // Clear out the password if we're showing a ready.
+  if (this.readyShowing) {
+    this.clearPassword();
+  }
+  this.focusPassword();
 };
 
 EncryptPage.prototype.handleLearnMore = function () {

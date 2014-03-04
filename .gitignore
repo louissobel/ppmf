@@ -8,3 +8,6 @@ env
 templates/decrypt.html
 build/
 pages/
+
+# deployment files
+prod/

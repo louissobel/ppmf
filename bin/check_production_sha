@@ -17,7 +17,7 @@ echo "*** Getting page"
 PAGE=$(curl $URL)
 
 echo "*** extracting revision #"
-REVISION=`echo $PAGE | perl -n -e'/Revision (\d+)</ && print $1'`
+REVISION=`echo $PAGE | perl -n -e'/data-revision-id="(\d+)"/ && print $1'`
 echo "got revision $REVISION"
 
 echo "*** getting shasum of page"

@@ -32,14 +32,18 @@ DecryptController.prototype.submitDecrypt = function (password) {
   }
 
   this.page.disableForm();
-  var b64ciphertext = this.page.getB64CipherText();
 
   // TODO CHECK LENGTH?
+  this.page.setProgress(0);
   this.page.showProgressBar();
   this.page.hideError();
   this.page.hideReady();
 
-  aes.decrypt(b64ciphertext, password, this.decryptProgressCallback.bind(this));
+  // Schedule this for next tick so that progress bar shows up.
+  setTimeout(function () {
+    var b64ciphertext = this.page.getB64CipherText();
+    aes.decrypt(b64ciphertext, password, this.decryptProgressCallback.bind(this));
+  }.bind(this), 10);
 };
 
 DecryptController.prototype.decryptProgressCallback = function (error, percent, done, binaryResult, inProgress) {

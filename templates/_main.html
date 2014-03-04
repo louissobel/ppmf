@@ -62,6 +62,20 @@ And the password, of course.
         </noscript>
 
         <div id="error-box" class="alert alert-danger" style="display:none;"></div>
+
+        <div id="too-big-warning" class="alert alert-warning" style="display:none;">
+          <p>
+            The file you're trying to protect with a password is pretty big (<span id="too-big-size"></span> MB).
+            This will either take a long time or crash your browser. Select another file or
+            <a href="#" id="too-big-encrypt-anyway">try to encrypt it anyway</a>.
+          </p>
+
+          <p>
+            You could also use the command line utility
+            <a href="https://www.npmjs.org/package/ppmf">available on npm</a>
+          </p>
+        </div>
+
         <div id="ready-box" class="ready-report" style="display:none;">
           <h5>Your file is password protected. <a href="#" id="what-now-link">What now?</a></h5>
 

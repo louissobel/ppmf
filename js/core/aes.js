@@ -6,6 +6,9 @@ var CryptoJS = require("./cryptojs")
 
 var aes = module.exports;
 
+// Should be multiple of 4 (cryptojs works in words of 4 bytes).
+aes.CHUNK_SIZE = 4096 * 4; // 4KB
+
 aes.decrypt = function (b64ciphertext, password, callback) {
   var cipherParams = CryptoJS.format.OpenSSL.parse(b64ciphertext)
     , derivedParams = _getKeyAndIv(password, cipherParams.salt)
@@ -50,7 +53,7 @@ var _getKeyAndIv = function (password, salt) {
 var _runCipher = function (options, callback) {
   options = options || {};
   var output = options.output || CryptoJS.lib.WordArray.create()
-    , wordsPerChunk = options.wordsPerChunk || 1024 // Four kilobytes in a chunk.
+    , wordsPerChunk = options.wordsPerChunk || aes.CHUNK_SIZE // Four kilobytes in a chunk.
     , cipher = options.cipher
     , input = options.input
     , format = options.format

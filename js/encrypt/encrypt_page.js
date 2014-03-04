@@ -35,6 +35,11 @@ EncryptPage.prototype.init = function () {
   this.whatNowBox = document.getElementById("what-now-box");
   this.whatNowLink.onclick = this.handleWhatNowClick.bind(this);
 
+  this.tooBigWarning = document.getElementById("too-big-warning");
+  this.tooBigSize = document.getElementById("too-big-size");
+  this.tooBigEncryptAnyway = document.getElementById("too-big-encrypt-anyway");
+  this.tooBigEncryptAnyway.onclick = this.handleEncryptAnywayClick.bind(this);
+
   return this;
 };
 
@@ -79,12 +84,18 @@ EncryptPage.prototype.showReady = function (options, callback) {
 };
 
 EncryptPage.prototype.handleFormSubmit = function () {
+  this.doSubmitForm({
+    force: false
+  });
+  return false;
+};
+
+EncryptPage.prototype.doSubmitForm = function (options) {
   if (this.submitCallback) {
     var password = this.passwordInput.value
       , selectedFile = this.fileInput.files[0] || null
       ;
-    this.submitCallback(password, selectedFile);
-    return false;
+    this.submitCallback(password, selectedFile, options.force);
   }
 };
 
@@ -114,4 +125,22 @@ EncryptPage.prototype.focusFileBrowse = function () {
 
 EncryptPage.prototype.handleWhatNowClick = function () {
   this.whatNowBox.style.display = "block";
+};
+
+EncryptPage.prototype.handleEncryptAnywayClick = function () {
+  this.hideTooBigWarning();
+  this.doSubmitForm({
+    force: true
+  });
+  return false;
+};
+
+EncryptPage.prototype.showTooBigWarning = function (bytes) {
+  var megabytes = Math.floor(100 * bytes / (1000 * 1000)) / 100;
+  this.tooBigSize.innerHTML = megabytes;
+  this.tooBigWarning.style.display = "block";
+};
+
+EncryptPage.prototype.hideTooBigWarning = function () {
+  this.tooBigWarning.style.display = "none";
 };

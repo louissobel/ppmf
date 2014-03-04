@@ -9,7 +9,8 @@ var EncryptPage = require("./encrypt_page")
   , HtmlWrapper = require("./html_wrapper")
   ;
 
-var SHOW_PROGRESS_BAR_SIZE_THRESHOLD = 1024;
+var SHOW_PROGRESS_BAR_SIZE_THRESHOLD = aes.CHUNK_SIZE * 4;
+var TRIGGER_TOO_BIG_WARNING_SIZE_THRESHOLD = 1000 * 1000 * 24;
 
 var EncryptController = module.exports = function () {
   if (!this.onSupportedBrowser()) {
@@ -20,7 +21,8 @@ var EncryptController = module.exports = function () {
   this.page.submitCallback = this.submitEncrypt.bind(this);
 };
 
-EncryptController.prototype.submitEncrypt = function (password, file) {
+EncryptController.prototype.submitEncrypt = function (password, file, force) {
+  force = force || false;
 
   if (!file) {
     this.encryptError("You need to pick a file");
@@ -31,6 +33,16 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
   if (password === "") {
     this.encryptError("You need to pick a password");
     this.page.focusPassword();
+    return false;
+  }
+
+  // If our file is huge, we should bork at this point.
+  if  (file.size > TRIGGER_TOO_BIG_WARNING_SIZE_THRESHOLD && !force) {
+    this.page.showTooBigWarning(file.size);
+    // make sure any old error is hidden
+    this.page.hideError();
+    // make sure any old result is hidden
+    this.page.hideReady();
     return false;
   }
 
@@ -45,6 +57,8 @@ EncryptController.prototype.submitEncrypt = function (password, file) {
   this.page.hideError();
   // make sure any old result is hidden
   this.page.hideReady();
+  // make sure we're not showing a too big warning
+  this.page.hideTooBigWarning();
 
   // turn the file into a binary string
   blobs.blobToBase64(file, function (err, result) {

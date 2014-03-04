@@ -104,6 +104,8 @@ EncryptController.prototype.encryptProgressCallback = function (err, percent, do
 };
 
 EncryptController.prototype.encryptError = function (message) {
+  // Make sure we don't show an old result.
+  this.page.hideReady();
   this.page.showError(message);
   this.page.enableForm();
 };

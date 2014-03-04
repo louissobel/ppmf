@@ -31,6 +31,10 @@ EncryptPage.prototype.init = function () {
   this.learnMoreLink.onclick = this.handleLearnMore.bind(this);
   this.leaveFaqLink.onclick = this.handleLeaveFaq.bind(this);
 
+  this.whatNowLink = document.getElementById("what-now-link");
+  this.whatNowBox = document.getElementById("what-now-box");
+  this.whatNowLink.onclick = this.handleWhatNowClick.bind(this);
+
   return this;
 };
 
@@ -106,4 +110,8 @@ EncryptPage.prototype.handleLeaveFaq = function () {
 
 EncryptPage.prototype.focusFileBrowse = function () {
   this.fileBrowseButton.focus();
+};
+
+EncryptPage.prototype.handleWhatNowClick = function () {
+  this.whatNowBox.style.display = "block";
 };

@@ -59,7 +59,16 @@
 
         <div id="error-box" class="alert alert-danger" style="display:none;"></div>
         <div id="ready-box" class="ready-report" style="display:none;">
-          <h5>Your file is password protected.</h5>
+          <h5>Your file is password protected. <a href="#" id="what-now-link">What now?</a></h5>
+
+          <div id="what-now-box" style="display:none;">
+            <ul>
+              <li>Save the encrypted file</li>
+              <li>Share it using email or Dropbox just like any file</li>
+              <li>Decrypt it with any web browser</li>
+            </ul>
+          </div>
+
           <div class="centered-button-group">
             <a id="done-link" download class="btn btn-info">Save to my computer</a>
             <div id="dropbox-saver-link-container" class="dropbox-saver"></div>

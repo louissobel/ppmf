@@ -9,5 +9,9 @@ templates/decrypt.html
 build/
 pages/
 
+ppmf-extension/b/ppmf*
+
 # deployment files
 prod/
+
+.DS_Store

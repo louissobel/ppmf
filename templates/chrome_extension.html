@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+  <meta name="viewport" content="width=480, initial-scale=.6666">
+
+  <title>Password Protect My File</title>
+
+  <style type="text/css">
+{{ include_file('build/chrome_extension.css') }}
+  </style>
+
+  <script type="text/javascript" src="ppmf.js"></script>
+
+</head>
+
+<body>
+
+  <div style="padding:15px;">
+
+    <!-- header -->
+    <div class="row">
+      <div class="col-xs-12">
+        <h3 class="logo">PasswordProtectMyFile.com</h3>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="col-xs-8 col-xs-offset-2 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4" style="z-index:1">
+        <div class="form-box well">
+          <form id="action-form" class="form-inline" role="form">
+              <p>
+                <label class="control-label" for="password">Enter Password:</label>
+                <input class="form-control" id="password" type="password">
+              </p>
+              <button id="action-form-submit" type="submit" class="btn btn-warning btn-block">Encrypt The File!</button>
+          </form>
+
+          <div id="aux-box">
+            <div class="progress" style="display:none;">
+              <div id="progress-bar" class="progress-bar" role="progressbar" style="width: 0%;">
+              </div>
+            </div>
+
+            <noscript>
+              <div id="error-box" class="alert alert-danger" style="margin-top:20px">
+                <p>
+                  You don't have javascript enabled.
+                  It's necessary to decrypt the file in the browser.
+                </p>
+
+                <p>
+                  If you don't want to use javascript, there is a command-line tool available:
+                  <a href="https://npmjs.org/package/ppmf">ppmf</a>
+                </p>
+
+              </div>
+            </noscript>
+
+            <div id="error-box" class="alert alert-danger" style="display: none;"></div>
+
+            <div id="too-big-warning" class="alert alert-warning" style="display:none;">
+              <p>
+                The file you're trying to protect with a password is pretty big (<span id="too-big-size"></span> MB).
+                This will either take a long time or crash your browser. Select another file or
+                <a href="#" id="too-big-encrypt-anyway">try to encrypt it anyway</a>.
+              </p>
+
+              <p>
+                You could also use the command line utility
+                <a href="https://www.npmjs.org/package/ppmf">available on npm</a>
+              </p>
+            </div>
+
+            <div id="ready-box" class="ready-report" style="display:none;">
+              <h5>Your file is password protected. <a href="#" id="what-now-link">What now?</a></h5>
+
+              <div id="what-now-box" style="display:none;">
+                <ul>
+                  <li>Save the encrypted version</li>
+                  <li>Share it using email or Dropbox like it's an ordinary file</li>
+                  <li>Decrypt it with any web browser (password required!)</li>
+                </ul>
+              </div>
+
+              <div class="centered-button-group">
+                <a id="done-link" download class="btn btn-info">Save to my computer</a>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+
+    {% include 'templates/_footer.html' %}
+
+  </div>
+
+  <div id="decrypt-template" style="display:none;">
+{{ include_file('pages/decrypt_template.html')|escape }}
+  </div>
+
+</body>
+</html>

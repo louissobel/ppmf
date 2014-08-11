@@ -1,0 +1,22 @@
+{
+  "manifest_version": 2,
+
+  "name": "Password Protect My File",
+  "description": "Password Protect A File",
+  "version": "1.0",
+
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  },
+
+  "permissions": [
+    "contextMenus",
+    "downloads",
+    "<all_urls>"
+  ],
+  "icons": {
+    "16": "icon.png"
+  }
+}

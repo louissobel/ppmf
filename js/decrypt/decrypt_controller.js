@@ -69,7 +69,7 @@ DecryptController.prototype.decryptProgressCallback = function (error, percent, 
     }.bind(this));
 
   } else {
-    if (!passwordChecking.checkWordArray(inProgress)) {
+    if (!passwordChecking.checkString(inProgress)) {
       this.badPassword();
       return false;
     }

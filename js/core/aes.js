@@ -2,6 +2,7 @@
 
 var CryptoJS = require("./cryptojs")
   , WordArrayChunker = require("./word_array_chunker")
+  , stringBuilders = require("./string_builders")
   ;
 
 var aes = module.exports;
@@ -18,7 +19,7 @@ aes.decrypt = function (b64ciphertext, password, callback) {
   _runCipher({
     cipher: decryptor
   , input: cipherParams.ciphertext
-  , format: CryptoJS.enc.Latin1
+  , builder: new stringBuilders.Latin1Builder()
   }, callback);
 };
 
@@ -30,13 +31,15 @@ aes.encrypt = function (plaintext, password, callback) {
 
   // Need to initialize it with the salt.
   // 0x53616c74, 0x65645f5f are OpenSSL magic salt numbers (Salted__)
-  var output = CryptoJS.lib.WordArray.create([0x53616c74, 0x65645f5f]).concat(derivedParams.salt);
+  var outputPrefix = CryptoJS.lib.WordArray.create([0x53616c74, 0x65645f5f]).concat(derivedParams.salt)
+    , builder = new stringBuilders.Base64Builder()
+    ;
+  builder.update(outputPrefix);
 
   _runCipher({
     cipher: encryptor
   , input: plainWords
-  , output: output
-  , format: CryptoJS.enc.Base64
+  , builder: builder
   }, callback);
 };
 
@@ -52,40 +55,39 @@ var _getKeyAndIv = function (password, salt) {
 
 var _runCipher = function (options, callback) {
   options = options || {};
-  var output = options.output || CryptoJS.lib.WordArray.create()
-    , wordsPerChunk = options.wordsPerChunk || aes.CHUNK_SIZE // Four kilobytes in a chunk.
+  var wordsPerChunk = options.wordsPerChunk || aes.CHUNK_SIZE // Four kilobytes in a chunk.
     , cipher = options.cipher
     , input = options.input
-    , format = options.format
+    , builder = options.builder
     , wordChunker = new WordArrayChunker(input, wordsPerChunk)
     ;
 
-  _cipherStep(wordChunker, cipher, output, format, callback);
+  _cipherStep(wordChunker, cipher, builder, callback);
 };
 
-var _cipherStep = function (wordChunker, cipher, output, format, callback) {
+var _cipherStep = function (wordChunker, cipher, builder, callback) {
   if (!wordChunker.hasNext()) {
 
     // base case - finalize and finish
-    output.concat(cipher.finalize());
+    builder.update(cipher.finalize());
 
     var result;
     try {
-      result = output.toString(format);
+      result = builder.finalize();
     } catch (err) {
       return callback(err);
     }
 
-    return callback(null, 1, true, result, output);
+    return callback(null, 1, true, result, result);
   } else {
 
     // do a step, tell callback, schedule this again
     // callback can return false to end things
-    output.concat(cipher.process(wordChunker.next()));
-    var keepGoing = callback(null, wordChunker.percentComplete(), false, null, output);
+    builder.update(cipher.process(wordChunker.next()));
+    var keepGoing = callback(null, wordChunker.percentComplete(), false, null, builder.peek());
     if (keepGoing !== false) {
       setTimeout(function () {
-        _cipherStep(wordChunker, cipher, output, format, callback);
+        _cipherStep(wordChunker, cipher, builder, callback);
       }, 0);
     }
   }

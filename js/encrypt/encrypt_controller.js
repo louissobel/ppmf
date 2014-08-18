@@ -10,7 +10,7 @@ var EncryptPage = require("./encrypt_page")
   ;
 
 var SHOW_PROGRESS_BAR_SIZE_THRESHOLD = aes.CHUNK_SIZE * 4;
-var TRIGGER_TOO_BIG_WARNING_SIZE_THRESHOLD = 1000 * 1000 * 24;
+var TRIGGER_TOO_BIG_WARNING_SIZE_THRESHOLD = 1000 * 1000 * 32;
 
 var EncryptController = module.exports = function () {
   if (!this.onSupportedBrowser()) {

@@ -88,7 +88,7 @@ module.exports.decrypt = function (options) {
 
       return callback(null, plaintext);
     } else {
-      if (!passwordChecking.checkWordArray(inProgress)) {
+      if (!passwordChecking.checkString(inProgress)) {
         callback(new Error("Invalid Password"));
         return false;
       }

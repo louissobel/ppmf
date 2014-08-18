@@ -39,6 +39,14 @@ BasePage.prototype.enableForm = function () {
   this.submitButton.disabled = false;
 };
 
+BasePage.prototype.showForm = function () {
+  this.actionForm.style.display = "block";
+};
+
+BasePage.prototype.hideForm = function () {
+  this.actionForm.style.display = "none";
+};
+
 BasePage.prototype.handleFormSubmit = function () {
   // Abstract
   return false;

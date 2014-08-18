@@ -20,8 +20,8 @@ var DecryptController = module.exports = function () {
   this.page.submitCallback = this.submitDecrypt.bind(this);
 
   this.page.hideLoader();
-  this.page.showDecryptForm();
-
+  this.page.showForm();
+  this.page.passwordInput.focus();
 };
 
 DecryptController.prototype.submitDecrypt = function (password) {
@@ -64,7 +64,7 @@ DecryptController.prototype.decryptProgressCallback = function (error, percent, 
       if (err) {
         return this.decryptError(err);
       }
-      this.page.hideDecryptForm();
+      this.page.hideForm();
       this.page.hideProgressBar();
     }.bind(this));
 

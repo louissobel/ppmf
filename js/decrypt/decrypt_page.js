@@ -26,15 +26,6 @@ DecryptPage.prototype.handleFormSubmit = function () {
   }
 };
 
-DecryptPage.prototype.showDecryptForm = function () {
-  this.actionForm.style.display = "block";
-  this.passwordInput.focus();
-};
-
-DecryptPage.prototype.hideDecryptForm = function () {
-  this.actionForm.style.display = "none";
-};
-
 DecryptPage.prototype.showLoader = function () {
   this.loader.style.display = "block";
 };

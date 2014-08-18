@@ -3,7 +3,7 @@ js_core_deps = js/core/*
 decrypt_js_deps = $(js_core_deps) js/decrypt/*
 encrypt_js_deps = $(js_core_deps) js/encrypt/*
 
-css_core_deps = css/common.less css/bootstrap.css
+css_core_deps = css/common.less css/bootstrap.css img/gun_metal.png
 
 demo_file = img/example.jpg
 demo_password = password

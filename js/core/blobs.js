@@ -40,7 +40,12 @@ module.exports.blobToBase64 = function (blob, callback) {
 
   // TODO: handle error?
   module.exports.blobToDataURI(blob, function (err, result) {
-    var base64 = result.substring(result.indexOf(",") + 1);
+    var commaIndex = result.indexOf(",");
+    if (commaIndex === -1) {
+      // Empty file
+      return callback(null, "");
+    }
+    var base64 = result.substring(commaIndex + 1);
     callback(null, base64);
   });
 
